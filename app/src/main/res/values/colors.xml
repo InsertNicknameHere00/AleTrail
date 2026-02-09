@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- AleTrail theme colors -->
+    <color name="ale_primary">#FFB300</color>
+    <color name="ale_primary_dark">#FF8F00</color>
+    <color name="ale_accent">#FFC107</color>
+
+    <!-- Background colors -->
+    <color name="ale_bg_dark">#1A0F00</color>
+    <color name="ale_bg_card">#2D1F0A</color>
+    <color name="ale_bg_card_lighter">#3D2F1A</color>
+
+    <!-- Text colors for better readability -->
+    <color name="text_primary_dark">#FFFFFF</color>
+    <color name="text_secondary_dark">#E0E0E0</color>
+    <color name="text_hint_dark">#B0B0B0</color>
+
+    <!-- Card colors with better contrast -->
+    <color name="card_text_on_gradient">#1A1A1A</color>
+    <color name="card_shadow">#80000000</color>
+</resources>

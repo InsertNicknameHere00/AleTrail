@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/app/src/main/res/drawable/progress_stamps.xml">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/app/src/main/res/drawable/progress_stamps.xml" />
+              <option name="originalContent" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;&#10;&lt;layer-list xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;&gt;&#10;    &lt;item android:id=&quot;@android:id/background&quot;&gt;&#10;        &lt;shape&gt;&#10;            &lt;corners android:radius=&quot;50dp&quot; /&gt;&#10;            &lt;solid android:color=&quot;#33000000&quot; /&gt;&#10;        &lt;/shape&gt;&#10;    &lt;/item&gt;&#10;    &lt;item android:id=&quot;@android:id/progress&quot;&gt;&#10;        &lt;clip&gt;&#10;            &lt;shape&gt;&#10;                &lt;corners android:radius=&quot;50dp&quot; /&gt;&#10;                &lt;gradient&#10;                    android:startColor=&quot;#FFEB3B&quot;&#10;                    android:endColor=&quot;#FFC107&quot; /&gt;&#10;            &lt;/shape&gt;&#10;        &lt;/clip&gt;&#10;    &lt;/item&gt;&#10;&lt;/layer-list&gt;&#10;" />
+              <option name="updatedContent" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;&#10;&lt;layer-list xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;&gt;&#10;    &lt;item android:id=&quot;@android:id/background&quot;&gt;&#10;        &lt;shape&gt;&#10;            &lt;corners android:radius=&quot;50dp&quot; /&gt;&#10;            &lt;solid android:color=&quot;#33000000&quot; /&gt;&#10;        &lt;/shape&gt;&#10;    &lt;/item&gt;&#10;    &lt;item android:id=&quot;@android:id/progress&quot;&gt;&#10;        &lt;clip&gt;&#10;            &lt;shape&gt;&#10;                &lt;corners android:radius=&quot;50dp&quot; /&gt;&#10;                &lt;gradient&#10;                    android:startColor=&quot;#FFEB3B&quot;&#10;                    android:endColor=&quot;#FFC107&quot; /&gt;&#10;            &lt;/shape&gt;&#10;        &lt;/clip&gt;&#10;    &lt;/item&gt;&#10;&lt;/layer-list&gt;&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
