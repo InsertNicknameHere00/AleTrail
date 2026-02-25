@@ -33,18 +33,20 @@ public interface AleTrailDAO {
     @Query("SELECT * FROM brewery_table WHERE id = :id")
     BreweryEntity getAleByIdSync(String id);
 
-    @Query("SELECT * FROM brewery_table WHERE name LIKE '%' || :searchQuery || '%'")
+    // Make search case-insensitive
+    @Query("SELECT * FROM brewery_table WHERE LOWER(name) LIKE '%' || LOWER(:searchQuery) || '%'")
     LiveData<List<BreweryEntity>> searchAles(String searchQuery);
 
     @Query("SELECT * FROM brewery_table WHERE isFavorite = 1")
     LiveData<List<BreweryEntity>> getFavorites();
 
-    @Query("SELECT * FROM brewery_table WHERE state = :state")
+    // Case-insensitive state/type queries
+    @Query("SELECT * FROM brewery_table WHERE LOWER(state) = LOWER(:state)")
     LiveData<List<BreweryEntity>> getBreweriesByState(String state);
 
-    @Query("SELECT * FROM brewery_table WHERE brewery_type = :type")
+    @Query("SELECT * FROM brewery_table WHERE LOWER(brewery_type) = LOWER(:type)")
     LiveData<List<BreweryEntity>> getBreweriesByType(String type);
 
-    @Query("SELECT * FROM brewery_table WHERE state = :state AND brewery_type = :type")
+    @Query("SELECT * FROM brewery_table WHERE LOWER(state) = LOWER(:state) AND LOWER(brewery_type) = LOWER(:type)")
     LiveData<List<BreweryEntity>> getBreweriesByStateAndType(String state, String type);
 }

@@ -73,4 +73,11 @@ dependencies {
 
     // WorkManager for background sync
     implementation 'androidx.work:work-runtime:2.9.0'
+
+    // Appwrite SDK
+    implementation 'io.appwrite:sdk-for-android:5.1.0'
+
+    // Kotlin coroutines (needed for calling Appwrite suspend functions from Java)
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
+
 }

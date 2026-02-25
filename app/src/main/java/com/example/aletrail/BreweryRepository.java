@@ -183,7 +183,16 @@ public class BreweryRepository {
     /**
      * Добавя/премахва от любими
      */
+    public interface ToggleFavoriteCallback {
+        void onComplete(boolean newState);
+    }
+
+    // Backwards-compatible: keep original method but forward to new one without callback
     public void toggleFavorite(BreweryEntity brewery) {
+        toggleFavorite(brewery, null);
+    }
+
+    public void toggleFavorite(BreweryEntity brewery, ToggleFavoriteCallback callback) {
         executorService.execute(() -> {
             try {
                 Log.d(TAG, "toggleFavorite called for: " + brewery.getName() + " (ID: " + brewery.getId() + ")");
@@ -191,27 +200,37 @@ public class BreweryRepository {
                 // First, ensure the brewery exists in the database
                 BreweryEntity existingBrewery = breweryDao.getAleByIdSync(brewery.getId());
 
+                boolean resultingState = false;
+
                 if (existingBrewery == null) {
                     // Brewery doesn't exist in DB yet, insert it first
                     Log.d(TAG, "Brewery not in DB, inserting first...");
                     brewery.setFavorite(true); // Mark as favorite
                     breweryDao.insert(brewery);
                     Log.d(TAG, "Inserted brewery with favorite=true");
+                    resultingState = true;
                 } else {
                     // Brewery exists, toggle its favorite status
                     Log.d(TAG, "Brewery exists in DB with favorite=" + existingBrewery.isFavorite());
                     existingBrewery.setFavorite(!existingBrewery.isFavorite());
                     breweryDao.update(existingBrewery);
                     Log.d(TAG, "Updated brewery favorite=" + existingBrewery.isFavorite());
+                    resultingState = existingBrewery.isFavorite();
                 }
 
                 // Verify the update
                 BreweryEntity verifyBrewery = breweryDao.getAleByIdSync(brewery.getId());
                 if (verifyBrewery != null) {
                     Log.d(TAG, "Verification - favorite state: " + verifyBrewery.isFavorite());
+                    resultingState = verifyBrewery.isFavorite();
+                }
+
+                if (callback != null) {
+                    callback.onComplete(resultingState);
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error toggling favorite: " + e.getMessage(), e);
+                if (callback != null) callback.onComplete(brewery.isFavorite());
             }
         });
     }

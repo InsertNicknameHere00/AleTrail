@@ -14,11 +14,13 @@ public class SyncService {
     private static final String TAG = "SyncService";
     private Context context;
     private Database database;
+    private AppwriteService appwriteService;
     private ExecutorService executorService;
 
     public SyncService(Context context) {
         this.context = context;
         this.database = Database.getInstance(context);
+        this.appwriteService = AppwriteService.getInstance(context);
         this.executorService = Executors.newSingleThreadExecutor();
     }
 
@@ -41,12 +43,15 @@ public class SyncService {
             return;
         }
 
+        // Don't sync for guest users
+        if (userId == null || userId.startsWith("guest_")) {
+            Log.d(TAG, "Guest user, skipping cloud sync");
+            return;
+        }
+
         executorService.execute(() -> {
             try {
-                // Sync visits
                 syncVisits();
-
-                // Sync ratings
                 syncRatings();
 
                 // Update last sync timestamp
@@ -66,11 +71,20 @@ public class SyncService {
     private void syncVisits() {
         List<VisitEntity> unsyncedVisits = database.visitDAO().getUnsyncedVisits();
         for (VisitEntity visit : unsyncedVisits) {
-            // TODO: Send to cloud/API
-            // For now, just mark as synced
-            database.visitDAO().markAsSynced(visit.getVisitId());
+            appwriteService.syncVisit(visit, new AppwriteService.SimpleCallback() {
+                @Override
+                public void onSuccess() {
+                    database.visitDAO().markAsSynced(visit.getVisitId());
+                    Log.d(TAG, "Visit " + visit.getVisitId() + " synced to Appwrite");
+                }
+
+                @Override
+                public void onError(String message) {
+                    Log.e(TAG, "Failed to sync visit " + visit.getVisitId() + ": " + message);
+                }
+            });
         }
-        Log.d(TAG, "Synced " + unsyncedVisits.size() + " visits");
+        Log.d(TAG, "Queued " + unsyncedVisits.size() + " visits for sync");
     }
 
     /**
@@ -79,12 +93,25 @@ public class SyncService {
     private void syncRatings() {
         List<BeerRatingEntity> unsyncedRatings = database.beerRatingDAO().getUnsyncedRatings();
         for (BeerRatingEntity rating : unsyncedRatings) {
-            // TODO: Send to cloud/API
-            // For now, just mark as synced
-            database.beerRatingDAO().markAsSynced(rating.getRatingId());
+            appwriteService.syncRating(rating, new AppwriteService.SimpleCallback() {
+                @Override
+                public void onSuccess() {
+                    database.beerRatingDAO().markAsSynced(rating.getRatingId());
+                    Log.d(TAG, "Rating " + rating.getRatingId() + " synced to Appwrite");
+                }
+
+                @Override
+                public void onError(String message) {
+                    Log.e(TAG, "Failed to sync rating " + rating.getRatingId() + ": " + message);
+                }
+            });
         }
-        Log.d(TAG, "Synced " + unsyncedRatings.size() + " ratings");
+        Log.d(TAG, "Queued " + unsyncedRatings.size() + " ratings for sync");
     }
+
+    // TODO: Add syncLoyaltyCards() when LoyaltyCardDAO.getUnsyncedCards() is implemented
+    // TODO: Add syncBadges() when BadgeDAO.getUnsyncedBadges() is implemented
+    // TODO: Add syncFavorites() — favorites are currently tracked via BreweryEntity.isFavorite
 
     /**
      * Планира автоматична синхронизация
@@ -105,4 +132,3 @@ public class SyncService {
         });
     }
 }
-
