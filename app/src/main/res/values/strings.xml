@@ -88,6 +88,7 @@
     <string name="appwrite_project_id">699f35060010dd99484e</string>
     <string name="appwrite_project_name">The AleTrail</string>
     <string name="appwrite_endpoint">https://fra.cloud.appwrite.io/v1</string>
+    <string name="appwrite_database_id">699f4f9c00275039a68b</string>
 
     <!-- Login / Sign Up -->
     <string name="login_title">Welcome to AleTrail 🍺</string>
@@ -122,4 +123,19 @@
     <string name="profile_guest_message">Sign in to sync your data across devices</string>
     <string name="btn_sign_in_now">Sign In Now</string>
     <string name="menu_profile">Profile</string>
+
+    <!-- Delete Account -->
+    <string name="btn_delete_account">Delete Account</string>
+    <string name="profile_delete_confirm_title">Delete Account?</string>
+    <string name="profile_delete_confirm_message">This will permanently delete your account and all your data including favorites, loyalty cards, visits, badges, and ratings. This action cannot be undone.</string>
+    <string name="profile_delete_success">Account deleted successfully</string>
+    <string name="profile_delete_error">Failed to delete account: %1$s</string>
+
+    <!-- Profile Avatar -->
+    <string name="profile_avatar_desc">Profile photo</string>
+    <string name="profile_change_photo">Change profile photo</string>
+    <string name="profile_photo_chooser_title">Profile Photo</string>
+    <string name="profile_photo_take">Take Photo</string>
+    <string name="profile_photo_gallery">Choose from Gallery</string>
+    <string name="profile_photo_remove">Remove Photo</string>
 </resources>

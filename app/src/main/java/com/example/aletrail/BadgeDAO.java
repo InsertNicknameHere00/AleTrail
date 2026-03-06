@@ -23,6 +23,9 @@ public interface BadgeDAO {
     @Query("SELECT * FROM badge_table WHERE userId = :userId AND isEarned = 1 ORDER BY earnedTimestamp DESC")
     LiveData<List<BadgeEntity>> getEarnedBadges(String userId);
 
+    @Query("SELECT * FROM badge_table WHERE userId = :userId AND isEarned = 1 ORDER BY earnedTimestamp DESC")
+    List<BadgeEntity> getEarnedBadgesSync(String userId);
+
     @Query("SELECT * FROM badge_table WHERE userId = :userId AND isEarned = 0")
     LiveData<List<BadgeEntity>> getUnlockedBadges(String userId);
 
@@ -31,5 +34,7 @@ public interface BadgeDAO {
 
     @Query("SELECT COUNT(*) FROM badge_table WHERE userId = :userId AND isEarned = 1")
     LiveData<Integer> getEarnedBadgeCount(String userId);
-}
 
+    @Query("DELETE FROM badge_table WHERE userId = :userId")
+    void deleteByUserId(String userId);
+}

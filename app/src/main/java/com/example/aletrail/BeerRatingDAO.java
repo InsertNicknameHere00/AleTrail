@@ -31,5 +31,7 @@ public interface BeerRatingDAO {
 
     @Query("UPDATE beer_rating_table SET synced = 1 WHERE ratingId = :ratingId")
     void markAsSynced(int ratingId);
-}
 
+    @Query("DELETE FROM beer_rating_table WHERE userId = :userId")
+    void deleteByUserId(String userId);
+}

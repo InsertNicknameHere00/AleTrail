@@ -40,6 +40,9 @@ public interface AleTrailDAO {
     @Query("SELECT * FROM brewery_table WHERE isFavorite = 1")
     LiveData<List<BreweryEntity>> getFavorites();
 
+    @Query("SELECT * FROM brewery_table WHERE isFavorite = 1")
+    List<BreweryEntity> getFavoritesSync();
+
     // Case-insensitive state/type queries
     @Query("SELECT * FROM brewery_table WHERE LOWER(state) = LOWER(:state)")
     LiveData<List<BreweryEntity>> getBreweriesByState(String state);
@@ -49,4 +52,7 @@ public interface AleTrailDAO {
 
     @Query("SELECT * FROM brewery_table WHERE LOWER(state) = LOWER(:state) AND LOWER(brewery_type) = LOWER(:type)")
     LiveData<List<BreweryEntity>> getBreweriesByStateAndType(String state, String type);
+
+    @Query("UPDATE brewery_table SET isFavorite = 0 WHERE isFavorite = 1")
+    void clearAllFavorites();
 }

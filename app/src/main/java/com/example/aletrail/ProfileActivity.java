@@ -1,21 +1,33 @@
 package com.example.aletrail;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 import androidx.lifecycle.LiveData;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CircleCrop;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -26,6 +38,8 @@ import io.appwrite.models.User;
 public class ProfileActivity extends AppCompatActivity {
 
     private TextView avatarInitial;
+    private ImageView avatarImage;
+    private ImageView avatarEditButton;
     private TextInputEditText profileNameInput;
     private TextView profileEmail;
     private TextView memberSince;
@@ -34,6 +48,7 @@ public class ProfileActivity extends AppCompatActivity {
     private TextView profileBadges;
     private Button saveProfileButton;
     private Button signOutButton;
+    private Button deleteAccountButton;
     private Button signInNowButton;
     private MaterialCardView profileCard;
     private MaterialCardView guestBanner;
@@ -43,6 +58,10 @@ public class ProfileActivity extends AppCompatActivity {
     private Database database;
     private String currentUserId;
     private boolean isGuest;
+
+    private Uri cameraImageUri;
+    private ActivityResultLauncher<Intent> galleryLauncher;
+    private ActivityResultLauncher<Uri> cameraLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,14 +73,47 @@ public class ProfileActivity extends AppCompatActivity {
         currentUserId = appwriteService.getSavedUserId();
         isGuest = currentUserId != null && currentUserId.startsWith("guest_");
 
+        registerImageLaunchers();
         initViews();
         setupListeners();
         loadProfile();
         loadStats();
     }
 
+    private void registerImageLaunchers() {
+        galleryLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Uri imageUri = result.getData().getData();
+                        if (imageUri != null) {
+                            // Take persistable permission so the URI survives app restarts
+                            try {
+                                getContentResolver().takePersistableUriPermission(
+                                        imageUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            } catch (SecurityException e) {
+                                Log.w("ProfileActivity", "Could not persist URI permission: " + e.getMessage());
+                            }
+                            saveProfileImage(imageUri.toString());
+                        }
+                    }
+                }
+        );
+
+        cameraLauncher = registerForActivityResult(
+                new ActivityResultContracts.TakePicture(),
+                success -> {
+                    if (success && cameraImageUri != null) {
+                        saveProfileImage(cameraImageUri.toString());
+                    }
+                }
+        );
+    }
+
     private void initViews() {
         avatarInitial = findViewById(R.id.avatarInitial);
+        avatarImage = findViewById(R.id.avatarImage);
+        avatarEditButton = findViewById(R.id.avatarEditButton);
         profileNameInput = findViewById(R.id.profileNameInput);
         profileEmail = findViewById(R.id.profileEmail);
         memberSince = findViewById(R.id.memberSince);
@@ -70,6 +122,7 @@ public class ProfileActivity extends AppCompatActivity {
         profileBadges = findViewById(R.id.profileBadges);
         saveProfileButton = findViewById(R.id.saveProfileButton);
         signOutButton = findViewById(R.id.signOutButton);
+        deleteAccountButton = findViewById(R.id.deleteAccountButton);
         signInNowButton = findViewById(R.id.signInNowButton);
         profileCard = findViewById(R.id.profileCard);
         guestBanner = findViewById(R.id.guestBanner);
@@ -78,6 +131,8 @@ public class ProfileActivity extends AppCompatActivity {
         if (isGuest) {
             guestBanner.setVisibility(View.VISIBLE);
             saveProfileButton.setVisibility(View.GONE);
+            deleteAccountButton.setVisibility(View.GONE);
+            avatarEditButton.setVisibility(View.GONE);
             profileNameInput.setEnabled(false);
         }
     }
@@ -88,6 +143,10 @@ public class ProfileActivity extends AppCompatActivity {
         saveProfileButton.setOnClickListener(v -> saveProfile());
 
         signOutButton.setOnClickListener(v -> confirmSignOut());
+
+        deleteAccountButton.setOnClickListener(v -> confirmDeleteAccount());
+
+        avatarEditButton.setOnClickListener(v -> showPhotoChooser());
 
         signInNowButton.setOnClickListener(v -> {
             // Clear guest session and go to login
@@ -122,6 +181,9 @@ public class ProfileActivity extends AppCompatActivity {
                     if (user.getEmail() != null) {
                         profileEmail.setText(user.getEmail());
                     }
+                    // Load profile image if available
+                    loadAvatarImage(user.getProfileImageUrl(), user.getDisplayName());
+
                     SimpleDateFormat sdf = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
                     String dateStr = sdf.format(new Date(user.getCreatedAt()));
                     memberSince.setText(getString(R.string.profile_member_since, dateStr));
@@ -191,6 +253,19 @@ public class ProfileActivity extends AppCompatActivity {
                     roomUser.setDisplayName(user.getName());
                     roomUser.setAuthProvider("email");
                     database.userDAO().insert(roomUser);
+
+                    // Also sync updated profile to Appwrite Database
+                    appwriteService.syncUserProfile(roomUser, new AppwriteService.SimpleCallback() {
+                        @Override
+                        public void onSuccess() {
+                            Log.d("ProfileActivity", "Profile synced to Appwrite DB");
+                        }
+
+                        @Override
+                        public void onError(String message) {
+                            Log.e("ProfileActivity", "Failed to sync profile to Appwrite DB: " + message);
+                        }
+                    });
                 }).start();
 
                 runOnUiThread(() -> {
@@ -254,6 +329,62 @@ public class ProfileActivity extends AppCompatActivity {
         finish();
     }
 
+    private void confirmDeleteAccount() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.profile_delete_confirm_title)
+                .setMessage(R.string.profile_delete_confirm_message)
+                .setPositiveButton(R.string.btn_delete_account, (dialog, which) -> performDeleteAccount())
+                .setNegativeButton(R.string.dialog_cancel, null)
+                .show();
+    }
+
+    private void performDeleteAccount() {
+        profileLoading.setVisibility(View.VISIBLE);
+        deleteAccountButton.setEnabled(false);
+        signOutButton.setEnabled(false);
+        saveProfileButton.setEnabled(false);
+
+        final String userId = currentUserId;
+
+        // Step 1: Delete all local Room data for this user on a background thread
+        new Thread(() -> {
+            try {
+                database.userDAO().deleteByUserId(userId);
+                database.loyaltyCardDAO().deleteByUserId(userId);
+                database.badgeDAO().deleteByUserId(userId);
+                database.visitDAO().deleteByUserId(userId);
+                database.beerRatingDAO().deleteByUserId(userId);
+                database.AleDAO().clearAllFavorites();
+                Log.d("ProfileActivity", "All local Room data deleted for user: " + userId);
+            } catch (Exception e) {
+                Log.e("ProfileActivity", "Error deleting local data: " + e.getMessage());
+            }
+
+            // Step 2: Delete Appwrite data + session
+            appwriteService.deleteAccount(new AppwriteService.AuthCallback<Void>() {
+                @Override
+                public void onSuccess(Void result) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(ProfileActivity.this,
+                                R.string.profile_delete_success, Toast.LENGTH_SHORT).show();
+                        clearSessionAndGoToLogin();
+                    });
+                }
+
+                @Override
+                public void onError(String message) {
+                    Log.e("ProfileActivity", "Appwrite account deletion error: " + message);
+                    // Even on Appwrite error, local data is already gone — redirect to login
+                    runOnUiThread(() -> {
+                        Toast.makeText(ProfileActivity.this,
+                                R.string.profile_delete_success, Toast.LENGTH_SHORT).show();
+                        clearSessionAndGoToLogin();
+                    });
+                }
+            });
+        }).start();
+    }
+
     private void setAvatarInitial(String name) {
         if (name != null && !name.isEmpty()) {
             avatarInitial.setText(String.valueOf(name.charAt(0)).toUpperCase(Locale.ROOT));
@@ -261,5 +392,146 @@ public class ProfileActivity extends AppCompatActivity {
             avatarInitial.setText("?");
         }
     }
-}
 
+    /**
+     * Loads a profile image into the avatar circle via Glide.
+     * If imageUrl is null or empty, falls back to the initial letter.
+     */
+    private void loadAvatarImage(String imageUrl, String fallbackName) {
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            avatarImage.setVisibility(View.VISIBLE);
+            avatarInitial.setVisibility(View.GONE);
+            Glide.with(this)
+                    .load(Uri.parse(imageUrl))
+                    .transform(new CircleCrop())
+                    .into(avatarImage);
+        } else {
+            avatarImage.setVisibility(View.GONE);
+            avatarInitial.setVisibility(View.VISIBLE);
+            setAvatarInitial(fallbackName);
+        }
+    }
+
+    /**
+     * Shows a chooser dialog: Take Photo / Choose from Gallery / Remove Photo.
+     */
+    private void showPhotoChooser() {
+        String[] options = {
+                getString(R.string.profile_photo_take),
+                getString(R.string.profile_photo_gallery),
+                getString(R.string.profile_photo_remove)
+        };
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.profile_photo_chooser_title)
+                .setItems(options, (dialog, which) -> {
+                    switch (which) {
+                        case 0:
+                            openCamera();
+                            break;
+                        case 1:
+                            openGallery();
+                            break;
+                        case 2:
+                            removeProfileImage();
+                            break;
+                    }
+                })
+                .setNegativeButton(R.string.dialog_cancel, null)
+                .show();
+    }
+
+    private void openCamera() {
+        try {
+            File photoFile = createImageFile();
+            cameraImageUri = FileProvider.getUriForFile(
+                    this,
+                    getPackageName() + ".fileprovider",
+                    photoFile
+            );
+            cameraLauncher.launch(cameraImageUri);
+        } catch (IOException e) {
+            Log.e("ProfileActivity", "Error creating image file: " + e.getMessage());
+            Toast.makeText(this, "Could not open camera", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private File createImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
+        String fileName = "AleTrail_" + timeStamp;
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        return File.createTempFile(fileName, ".jpg", storageDir);
+    }
+
+    private void openGallery() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*");
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        galleryLauncher.launch(intent);
+    }
+
+    /**
+     * Saves the selected profile image URI to Room and syncs to Appwrite.
+     */
+    private void saveProfileImage(String imageUri) {
+        loadAvatarImage(imageUri, appwriteService.getSavedUserName());
+
+        new Thread(() -> {
+            UserEntity user = database.userDAO().getUserByIdSync(currentUserId);
+            if (user != null) {
+                user.setProfileImageUrl(imageUri);
+                database.userDAO().update(user);
+                Log.d("ProfileActivity", "Profile image saved to Room: " + imageUri);
+
+                // Sync to Appwrite
+                if (!isGuest) {
+                    appwriteService.syncUserProfile(user, new AppwriteService.SimpleCallback() {
+                        @Override
+                        public void onSuccess() {
+                            Log.d("ProfileActivity", "Profile image synced to Appwrite");
+                        }
+
+                        @Override
+                        public void onError(String message) {
+                            Log.e("ProfileActivity", "Failed to sync profile image: " + message);
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
+    /**
+     * Removes the profile image and reverts to the initial letter avatar.
+     */
+    private void removeProfileImage() {
+        avatarImage.setVisibility(View.GONE);
+        avatarInitial.setVisibility(View.VISIBLE);
+        setAvatarInitial(appwriteService.getSavedUserName());
+
+        new Thread(() -> {
+            UserEntity user = database.userDAO().getUserByIdSync(currentUserId);
+            if (user != null) {
+                user.setProfileImageUrl(null);
+                database.userDAO().update(user);
+                Log.d("ProfileActivity", "Profile image removed");
+
+                if (!isGuest) {
+                    appwriteService.syncUserProfile(user, new AppwriteService.SimpleCallback() {
+                        @Override
+                        public void onSuccess() {
+                            Log.d("ProfileActivity", "Profile image removal synced to Appwrite");
+                        }
+
+                        @Override
+                        public void onError(String message) {
+                            Log.e("ProfileActivity", "Failed to sync image removal: " + message);
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+}

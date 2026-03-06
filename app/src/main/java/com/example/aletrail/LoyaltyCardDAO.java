@@ -24,6 +24,9 @@ public interface LoyaltyCardDAO {
     @Query("SELECT * FROM loyalty_card_table WHERE userId = :userId")
     LiveData<List<LoyaltyCardEntity>> getCardsForUser(String userId);
 
+    @Query("SELECT * FROM loyalty_card_table WHERE userId = :userId")
+    List<LoyaltyCardEntity> getCardsForUserSync(String userId);
+
     @Query("SELECT * FROM loyalty_card_table WHERE userId = :userId AND breweryId = :breweryId LIMIT 1")
     LiveData<LoyaltyCardEntity> getCardForUserAndBrewery(String userId, String breweryId);
 
@@ -35,4 +38,7 @@ public interface LoyaltyCardDAO {
 
     @Query("DELETE FROM loyalty_card_table WHERE cardId = :cardId")
     void deleteCard(int cardId);
+
+    @Query("DELETE FROM loyalty_card_table WHERE userId = :userId")
+    void deleteByUserId(String userId);
 }

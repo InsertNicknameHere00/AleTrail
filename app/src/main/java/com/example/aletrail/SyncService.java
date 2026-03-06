@@ -51,8 +51,12 @@ public class SyncService {
 
         executorService.execute(() -> {
             try {
+                syncUserProfile(userId);
                 syncVisits();
                 syncRatings();
+                syncFavorites(userId);
+                syncLoyaltyCards(userId);
+                syncBadges(userId);
 
                 // Update last sync timestamp
                 long currentTime = System.currentTimeMillis();
@@ -63,6 +67,107 @@ public class SyncService {
                 Log.e(TAG, "Error during sync: " + e.getMessage());
             }
         });
+    }
+
+    /**
+     * Syncs the user profile to Appwrite Database
+     */
+    private void syncUserProfile(String userId) {
+        try {
+            // getUserByIdSync doesn't exist yet, so we use a blocking approach
+            UserEntity user = database.userDAO().getUserByIdSync(userId);
+            if (user != null) {
+                appwriteService.syncUserProfile(user, new AppwriteService.SimpleCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(TAG, "User profile synced to Appwrite");
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        Log.e(TAG, "Failed to sync user profile: " + message);
+                    }
+                });
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error syncing user profile: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Syncs favorite breweries to Appwrite
+     */
+    private void syncFavorites(String userId) {
+        try {
+            List<BreweryEntity> favorites = database.AleDAO().getFavoritesSync();
+            for (BreweryEntity brewery : favorites) {
+                appwriteService.syncFavorite(userId, brewery, new AppwriteService.SimpleCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(TAG, "Favorite " + brewery.getName() + " synced to Appwrite");
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        // May already exist — that's OK
+                        Log.d(TAG, "Favorite sync note for " + brewery.getName() + ": " + message);
+                    }
+                });
+            }
+            Log.d(TAG, "Queued " + favorites.size() + " favorites for sync");
+        } catch (Exception e) {
+            Log.e(TAG, "Error syncing favorites: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Syncs loyalty cards to Appwrite
+     */
+    private void syncLoyaltyCards(String userId) {
+        try {
+            List<LoyaltyCardEntity> cards = database.loyaltyCardDAO().getCardsForUserSync(userId);
+            for (LoyaltyCardEntity card : cards) {
+                appwriteService.syncLoyaltyCard(card, new AppwriteService.SimpleCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(TAG, "Loyalty card " + card.getCardId() + " synced to Appwrite");
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        Log.d(TAG, "Loyalty card sync note for " + card.getCardId() + ": " + message);
+                    }
+                });
+            }
+            Log.d(TAG, "Queued " + cards.size() + " loyalty cards for sync");
+        } catch (Exception e) {
+            Log.e(TAG, "Error syncing loyalty cards: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Syncs badges to Appwrite
+     */
+    private void syncBadges(String userId) {
+        try {
+            List<BadgeEntity> badges = database.badgeDAO().getEarnedBadgesSync(userId);
+            for (BadgeEntity badge : badges) {
+                appwriteService.syncBadge(badge, new AppwriteService.SimpleCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(TAG, "Badge " + badge.getBadgeName() + " synced to Appwrite");
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        Log.d(TAG, "Badge sync note for " + badge.getBadgeName() + ": " + message);
+                    }
+                });
+            }
+            Log.d(TAG, "Queued " + badges.size() + " badges for sync");
+        } catch (Exception e) {
+            Log.e(TAG, "Error syncing badges: " + e.getMessage());
+        }
     }
 
     /**
@@ -109,9 +214,6 @@ public class SyncService {
         Log.d(TAG, "Queued " + unsyncedRatings.size() + " ratings for sync");
     }
 
-    // TODO: Add syncLoyaltyCards() when LoyaltyCardDAO.getUnsyncedCards() is implemented
-    // TODO: Add syncBadges() when BadgeDAO.getUnsyncedBadges() is implemented
-    // TODO: Add syncFavorites() — favorites are currently tracked via BreweryEntity.isFavorite
 
     /**
      * Планира автоматична синхронизация

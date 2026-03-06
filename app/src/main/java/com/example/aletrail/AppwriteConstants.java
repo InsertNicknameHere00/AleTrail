@@ -4,25 +4,24 @@ package com.example.aletrail;
  * Constants for Appwrite Database and Collection IDs.
  *
  * These must match the collections created in the Appwrite Console.
- * Go to your Appwrite project → Databases → Create Database "aletrail_db"
- * Then create these collections with the attributes described below:
  *
  * Collection: users
+ *   - userId (string, 255)
  *   - email (string, 255)
  *   - displayName (string, 255)
  *   - authProvider (string, 50)
  *   - profileImageUrl (string, 500, optional)
- *   - createdAt (integer)
  *   - totalStamps (integer)
  *   - totalVisits (integer)
  *   - totalBreweriesVisited (integer)
  *   - isPremium (boolean)
+ *   NOTE: Appwrite auto-tracks $createdAt and $updatedAt - do not create custom createdAt attribute.
  *
  * Collection: favorites
  *   - userId (string, 255)
  *   - breweryId (string, 255)
  *   - breweryName (string, 500)
- *   - addedAt (integer)
+ *   - addedAt (datetime)
  *
  * Collection: loyalty_cards
  *   - userId (string, 255)
@@ -36,18 +35,18 @@ package com.example.aletrail;
  *   - userId (string, 255)
  *   - breweryId (string, 255)
  *   - cardId (integer)
- *   - visitTimestamp (integer)
+ *   - visitTimestamp (datetime)
  *   - stampAdded (boolean)
  *   - notes (string, 1000, optional)
- *   - latitude (double)
- *   - longitude (double)
+ *   - latitude (point, optional)
+ *   - longitude (point, optional)
  *
  * Collection: badges
  *   - userId (string, 255)
  *   - badgeType (string, 100)
  *   - badgeName (string, 255)
  *   - badgeDescription (string, 500)
- *   - badgeIcon (string, 50)
+ *   - badgeIcon (url)
  *   - requiredCount (integer)
  *   - earnedTimestamp (integer)
  *   - isEarned (boolean)
@@ -58,7 +57,7 @@ package com.example.aletrail;
  *   - breweryId (string, 255)
  *   - beerName (string, 255)
  *   - rating (double)
- *   - comment (string, 2000, optional)
+ *   - comment (string, 200, optional)
  *   - ratingTimestamp (integer)
  */
 public final class AppwriteConstants {
@@ -77,4 +76,3 @@ public final class AppwriteConstants {
     public static final String COLLECTION_BADGES = "badges";
     public static final String COLLECTION_BEER_RATINGS = "beer_ratings";
 }
-

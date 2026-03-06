@@ -15,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import android.util.Log;
+
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -216,7 +218,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     /**
-     * Creates or updates the UserEntity in Room so the rest of the app has data.
+     * Creates or updates the UserEntity in Room AND syncs to Appwrite Database.
      */
     private void ensureRoomUser(String userId, String email, String name, String provider) {
         executor.execute(() -> {
@@ -227,6 +229,21 @@ public class LoginActivity extends AppCompatActivity {
             user.setAuthProvider(provider);
             user.setCreatedAt(System.currentTimeMillis());
             database.userDAO().insert(user);
+
+            // Also sync the user profile to Appwrite Database (not just Auth)
+            if (userId != null && !userId.startsWith("guest_")) {
+                appwriteService.syncUserProfile(user, new AppwriteService.SimpleCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d("LoginActivity", "User profile synced to Appwrite DB for: " + userId);
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        Log.e("LoginActivity", "Failed to sync user profile to Appwrite DB: " + message);
+                    }
+                });
+            }
         });
     }
 

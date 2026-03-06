@@ -77,6 +77,10 @@ dependencies {
     // Appwrite SDK
     implementation 'io.appwrite:sdk-for-android:5.1.0'
 
+    // Image loading
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
+
     // Kotlin coroutines (needed for calling Appwrite suspend functions from Java)
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
 

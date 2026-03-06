@@ -19,12 +19,14 @@ public class BreweryRepository {
     private AleTrailDAO breweryDao;
     private TheAleTrailAPI api;
     private ExecutorService executorService;
+    private AppwriteService appwriteService;
 
     public BreweryRepository(Context context) {
         Database database = Database.getInstance(context);
         this.breweryDao = database.AleDAO();
         this.api = RetrofitClient.getAleTrailAPI();
         this.executorService = Executors.newFixedThreadPool(2);
+        this.appwriteService = AppwriteService.getInstance(context);
     }
 
     /**
@@ -223,6 +225,29 @@ public class BreweryRepository {
                 if (verifyBrewery != null) {
                     Log.d(TAG, "Verification - favorite state: " + verifyBrewery.isFavorite());
                     resultingState = verifyBrewery.isFavorite();
+                }
+
+                // Sync favorite change to Appwrite Database
+                String userId = appwriteService.getSavedUserId();
+                if (userId != null && !userId.startsWith("guest_")) {
+                    if (resultingState) {
+                        // Added to favorites — sync to Appwrite
+                        appwriteService.syncFavorite(userId, brewery, new AppwriteService.SimpleCallback() {
+                            @Override
+                            public void onSuccess() {
+                                Log.d(TAG, "Favorite synced to Appwrite for: " + brewery.getName());
+                            }
+
+                            @Override
+                            public void onError(String message) {
+                                Log.e(TAG, "Failed to sync favorite to Appwrite: " + message);
+                            }
+                        });
+                    } else {
+                        // Removed from favorites — could delete from Appwrite
+                        // For now, log it; full delete requires querying Appwrite for the document ID
+                        Log.d(TAG, "Favorite removed locally for: " + brewery.getName() + " (Appwrite delete not yet implemented)");
+                    }
                 }
 
                 if (callback != null) {

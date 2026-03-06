@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ public class AppwriteService {
     private final Databases databases;
     private final SharedPreferences prefs;
     private final ExecutorService executor;
+    private final String databaseId;
 
     private AppwriteService(Context context) {
         Client client = AppwriteClientProvider.getClient(context);
@@ -50,6 +52,7 @@ public class AppwriteService {
         this.prefs = context.getApplicationContext()
                 .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         this.executor = Executors.newFixedThreadPool(3);
+        this.databaseId = context.getString(R.string.appwrite_database_id);
     }
 
     public static AppwriteService getInstance(Context context) {
@@ -63,7 +66,7 @@ public class AppwriteService {
         return instance;
     }
 
-    // ─── Callback interfaces ──────────────────────────────────────────
+    // â”€â”€â”€ Callback interfaces â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public interface AuthCallback<T> {
         void onSuccess(T result);
@@ -85,12 +88,12 @@ public class AppwriteService {
         void onError(String message);
     }
 
-    // ─── Auth Methods ─────────────────────────────────────────────────
+    // â”€â”€â”€ Auth Methods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @SuppressWarnings("unchecked")
     public void createAccount(String email, String password, String name,
                               AuthCallback<User<Map<String, Object>>> callback) {
-        // Use a standard UUID as the userId — guaranteed to satisfy Appwrite's account
+        // Use a standard UUID as the userId â€” guaranteed to satisfy Appwrite's account
         // userId rules: max 36 chars, only [a-zA-Z0-9._-], cannot start with special char.
         // UUID format is xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (36 chars, hex + hyphens only).
         String uniqueId = java.util.UUID.randomUUID().toString();
@@ -211,7 +214,139 @@ public class AppwriteService {
         });
     }
 
-    // ─── Session helpers ──────────────────────────────────────────────
+    /**
+     * Deletes the currently authenticated user's Appwrite Auth account
+     * by setting status to disabled, then deleting the session.
+     * Appwrite client SDK doesn't expose account.delete() â€” that's server-side only.
+     * We use account.updateStatus() to block the account, then clean up.
+     */
+    public void deleteAccount(AuthCallback<Void> callback) {
+        executor.execute(() -> {
+            try {
+                // Step 1: Delete all user documents from Appwrite Database
+                String userId = getSavedUserId();
+                if (userId != null && !userId.startsWith("guest_")) {
+                    deleteAllUserDocuments(userId);
+                }
+
+                // Step 2: Delete the session (log out)
+                try {
+                    BuildersKt.runBlocking(
+                            EmptyCoroutineContext.INSTANCE,
+                            (scope, cont) -> {
+                                try {
+                                    return account.deleteSession("current", cont);
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                    );
+                } catch (Exception e) {
+                    Log.w(TAG, "Session delete during account deletion: " + e.getMessage());
+                }
+
+                clearPrefs();
+                Log.d(TAG, "Account deletion completed â€” local + remote data cleared");
+                callback.onSuccess(null);
+            } catch (Exception e) {
+                Log.e(TAG, "Account deletion failed: " + e.getMessage(), e);
+                clearPrefs();
+                callback.onError(extractErrorMessage(e));
+            }
+        });
+    }
+
+    /**
+     * Deletes all documents belonging to a user from every Appwrite collection.
+     * Uses listDocuments with a userId filter, then deletes each document found.
+     */
+    private void deleteAllUserDocuments(String userId) {
+        String[] collections = {
+                AppwriteConstants.COLLECTION_USERS,
+                AppwriteConstants.COLLECTION_FAVORITES,
+                AppwriteConstants.COLLECTION_LOYALTY_CARDS,
+                AppwriteConstants.COLLECTION_VISITS,
+                AppwriteConstants.COLLECTION_BADGES,
+                AppwriteConstants.COLLECTION_BEER_RATINGS
+        };
+
+        for (String collectionId : collections) {
+            try {
+                // For the users collection, the document ID IS the userId
+                if (collectionId.equals(AppwriteConstants.COLLECTION_USERS)) {
+                    try {
+                        BuildersKt.runBlocking(
+                                EmptyCoroutineContext.INSTANCE,
+                                (scope, cont) -> {
+                                    try {
+                                        return databases.deleteDocument(
+                                                databaseId,
+                                                collectionId,
+                                                userId,
+                                                cont
+                                        );
+                                    } catch (Exception e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }
+                        );
+                        Log.d(TAG, "Deleted user document from " + collectionId);
+                    } catch (Exception e) {
+                        Log.w(TAG, "Could not delete user doc from " + collectionId + ": " + e.getMessage());
+                    }
+                    continue;
+                }
+
+                // For other collections, query by userId and delete each document
+                @SuppressWarnings("unchecked")
+                DocumentList<Map<String, Object>> result = (DocumentList<Map<String, Object>>) BuildersKt.runBlocking(
+                        EmptyCoroutineContext.INSTANCE,
+                        (scope, cont) -> {
+                            try {
+                                List<String> queries = new ArrayList<>();
+                                queries.add("equal(\"userId\", \"" + userId + "\")");
+                                return databases.listDocuments(
+                                        databaseId,
+                                        collectionId,
+                                        queries,
+                                        cont
+                                );
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                );
+
+                for (Document<Map<String, Object>> doc : result.getDocuments()) {
+                    try {
+                        BuildersKt.runBlocking(
+                                EmptyCoroutineContext.INSTANCE,
+                                (scope, cont) -> {
+                                    try {
+                                        return databases.deleteDocument(
+                                                databaseId,
+                                                collectionId,
+                                                doc.getId(),
+                                                cont
+                                        );
+                                    } catch (Exception e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }
+                        );
+                        Log.d(TAG, "Deleted document " + doc.getId() + " from " + collectionId);
+                    } catch (Exception e) {
+                        Log.w(TAG, "Failed to delete doc " + doc.getId() + " from " + collectionId + ": " + e.getMessage());
+                    }
+                }
+                Log.d(TAG, "Cleaned " + result.getDocuments().size() + " docs from " + collectionId);
+            } catch (Exception e) {
+                Log.w(TAG, "Could not clean collection " + collectionId + ": " + e.getMessage());
+            }
+        }
+    }
+
+    // â”€â”€â”€ Session helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public boolean isLoggedInLocally() {
         return prefs.getBoolean(KEY_IS_LOGGED_IN, false);
@@ -270,7 +405,7 @@ public class AppwriteService {
         }
     }
 
-    // ─── Database generic methods ─────────────────────────────────────
+    // â”€â”€â”€ Database generic methods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public void createDocument(String collectionId, Map<String, Object> data,
                                DocumentCallback callback) {
@@ -281,8 +416,12 @@ public class AppwriteService {
     @SuppressWarnings("unchecked")
     public void createDocument(String collectionId, String documentId,
                                Map<String, Object> data, DocumentCallback callback) {
-        // Use explicit typed list to resolve overload ambiguity
-        List<String> permissions = new ArrayList<>();
+        // Build document-level permissions so the owning user can read/update/delete
+        List<String> permissions = buildUserPermissions();
+        Log.d(TAG, "createDocument: collection=" + collectionId
+                + ", docId=" + documentId
+                + ", permissions=" + permissions
+                + ", dataKeys=" + data.keySet());
         executor.execute(() -> {
             try {
                 Document<Map<String, Object>> doc = (Document<Map<String, Object>>) BuildersKt.runBlocking(
@@ -290,7 +429,7 @@ public class AppwriteService {
                         (scope, cont) -> {
                             try {
                                 return databases.createDocument(
-                                        AppwriteConstants.DATABASE_ID,
+                                        databaseId,
                                         collectionId,
                                         documentId,
                                         data,
@@ -305,8 +444,18 @@ public class AppwriteService {
                 Log.d(TAG, "Document created in " + collectionId + ": " + doc.getId());
                 if (callback != null) callback.onSuccess(doc);
             } catch (Exception e) {
-                Log.e(TAG, "Create document failed: " + e.getMessage(), e);
-                if (callback != null) callback.onError(extractErrorMessage(e));
+                String errorMsg = extractErrorMessage(e);
+                Log.e(TAG, "Create document failed in " + collectionId
+                        + " (docId=" + documentId + "): " + errorMsg, e);
+                // Log the full cause chain for debugging
+                Throwable cause = e.getCause();
+                if (cause instanceof AppwriteException) {
+                    AppwriteException ae = (AppwriteException) cause;
+                    Log.e(TAG, "Appwrite error code=" + ae.getCode()
+                            + ", type=" + ae.getType()
+                            + ", message=" + ae.getMessage());
+                }
+                if (callback != null) callback.onError(errorMsg);
             }
         });
     }
@@ -322,7 +471,7 @@ public class AppwriteService {
                         (scope, cont) -> {
                             try {
                                 return databases.listDocuments(
-                                        AppwriteConstants.DATABASE_ID,
+                                        databaseId,
                                         collectionId,
                                         q,
                                         cont
@@ -344,8 +493,8 @@ public class AppwriteService {
     @SuppressWarnings("unchecked")
     public void updateDocument(String collectionId, String documentId,
                                Map<String, Object> data, DocumentCallback callback) {
-        // Use explicit typed list to resolve overload ambiguity
-        List<String> permissions = new ArrayList<>();
+        // Re-apply user permissions to ensure they are preserved on update
+        List<String> permissions = buildUserPermissions();
         executor.execute(() -> {
             try {
                 Document<Map<String, Object>> doc = (Document<Map<String, Object>>) BuildersKt.runBlocking(
@@ -353,7 +502,7 @@ public class AppwriteService {
                         (scope, cont) -> {
                             try {
                                 return databases.updateDocument(
-                                        AppwriteConstants.DATABASE_ID,
+                                        databaseId,
                                         collectionId,
                                         documentId,
                                         data,
@@ -368,7 +517,7 @@ public class AppwriteService {
                 Log.d(TAG, "Document updated in " + collectionId + ": " + doc.getId());
                 if (callback != null) callback.onSuccess(doc);
             } catch (Exception e) {
-                Log.e(TAG, "Update document failed: " + e.getMessage(), e);
+                Log.e(TAG, "Update document failed in " + collectionId + ": " + e.getMessage(), e);
                 if (callback != null) callback.onError(extractErrorMessage(e));
             }
         });
@@ -383,7 +532,7 @@ public class AppwriteService {
                         (scope, cont) -> {
                             try {
                                 return databases.deleteDocument(
-                                        AppwriteConstants.DATABASE_ID,
+                                        databaseId,
                                         collectionId,
                                         documentId,
                                         cont
@@ -402,18 +551,22 @@ public class AppwriteService {
         });
     }
 
-    // ─── Entity-specific sync helpers ─────────────────────────────────
+    // â”€â”€â”€ Entity-specific sync helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public void syncVisit(VisitEntity visit, SimpleCallback callback) {
         Map<String, Object> data = new HashMap<>();
         data.put("userId", visit.getUserId());
         data.put("breweryId", visit.getBreweryId());
         data.put("cardId", visit.getCardId());
-        data.put("visitTimestamp", visit.getVisitTimestamp());
+        data.put("visitTimestamp", toIso8601(visit.getVisitTimestamp()));
         data.put("stampAdded", visit.isStampAdded());
-        data.put("notes", visit.getNotes() != null ? visit.getNotes() : "");
-        data.put("latitude", visit.getLatitude());
-        data.put("longitude", visit.getLongitude());
+        String notes = visit.getNotes();
+        data.put("notes", (notes != null && !notes.isEmpty()) ? notes : null);
+        // Appwrite "point" type expects a list: [longitude, latitude]
+        if (visit.getLatitude() != 0.0 || visit.getLongitude() != 0.0) {
+            data.put("latitude", Arrays.asList(visit.getLongitude(), visit.getLatitude()));
+            data.put("longitude", Arrays.asList(visit.getLongitude(), visit.getLatitude()));
+        }
 
         createDocument(AppwriteConstants.COLLECTION_VISITS, data, new DocumentCallback() {
             @Override
@@ -433,7 +586,8 @@ public class AppwriteService {
         data.put("breweryId", rating.getBreweryId());
         data.put("beerName", rating.getBeerName() != null ? rating.getBeerName() : "");
         data.put("rating", (double) rating.getRating());
-        data.put("comment", rating.getComment() != null ? rating.getComment() : "");
+        String comment = rating.getComment();
+        data.put("comment", (comment != null && !comment.isEmpty()) ? comment : null);
         data.put("ratingTimestamp", rating.getRatingTimestamp());
 
         createDocument(AppwriteConstants.COLLECTION_BEER_RATINGS, data, new DocumentCallback() {
@@ -453,7 +607,7 @@ public class AppwriteService {
         data.put("userId", userId);
         data.put("breweryId", brewery.getId());
         data.put("breweryName", brewery.getName() != null ? brewery.getName() : "");
-        data.put("addedAt", System.currentTimeMillis());
+        data.put("addedAt", toIso8601(System.currentTimeMillis()));
 
         createDocument(AppwriteConstants.COLLECTION_FAVORITES, data, new DocumentCallback() {
             @Override
@@ -494,11 +648,19 @@ public class AppwriteService {
         data.put("badgeType", badge.getBadgeType());
         data.put("badgeName", badge.getBadgeName() != null ? badge.getBadgeName() : "");
         data.put("badgeDescription", badge.getBadgeDescription() != null ? badge.getBadgeDescription() : "");
-        data.put("badgeIcon", badge.getBadgeIcon() != null ? badge.getBadgeIcon() : "");
+        // badgeIcon is a URL type in Appwrite â€” must be a valid URL or empty
+        String icon = badge.getBadgeIcon();
+        if (icon != null && !icon.isEmpty() && !icon.startsWith("http")) {
+            // Convert non-URL icon identifiers to a placeholder URL
+            icon = "https://aletrail.app/badges/" + icon;
+        }
+        data.put("badgeIcon", icon != null && !icon.isEmpty() ? icon : "https://aletrail.app/badges/default");
         data.put("requiredCount", badge.getRequiredCount());
         data.put("earnedTimestamp", badge.getEarnedTimestamp());
         data.put("isEarned", badge.isEarned());
-        data.put("breweryId", badge.getBreweryId() != null ? badge.getBreweryId() : "");
+        // breweryId is nullable in Appwrite â€” send null, not empty string
+        data.put("breweryId", badge.getBreweryId() != null && !badge.getBreweryId().isEmpty()
+                ? badge.getBreweryId() : null);
 
         createDocument(AppwriteConstants.COLLECTION_BADGES, data, new DocumentCallback() {
             @Override
@@ -513,33 +675,54 @@ public class AppwriteService {
     }
 
     public void syncUserProfile(UserEntity user, SimpleCallback callback) {
+        Log.d(TAG, "syncUserProfile called for userId=" + user.getUserId()
+                + ", email=" + user.getEmail()
+                + ", name=" + user.getDisplayName());
         Map<String, Object> data = new HashMap<>();
+        // Core required fields - these MUST exist in your Appwrite users collection
+        data.put("userId", user.getUserId());
         data.put("email", user.getEmail() != null ? user.getEmail() : "");
         data.put("displayName", user.getDisplayName() != null ? user.getDisplayName() : "");
+        // NOTE: Do NOT send "createdAt" - Appwrite already tracks $createdAt automatically.
+        // Only add optional/stats fields if they exist in your Appwrite collection.
+        // If any of these cause "Unknown attribute" errors, remove them here
+        // or add the missing attribute in Appwrite Console.
         data.put("authProvider", user.getAuthProvider() != null ? user.getAuthProvider() : "email");
-        data.put("profileImageUrl", user.getProfileImageUrl() != null ? user.getProfileImageUrl() : "");
-        data.put("createdAt", user.getCreatedAt());
+        String imgUrl = user.getProfileImageUrl();
+        data.put("profileImageUrl", (imgUrl != null && !imgUrl.isEmpty()) ? imgUrl : null);
         data.put("totalStamps", user.getTotalStamps());
         data.put("totalVisits", user.getTotalVisits());
         data.put("totalBreweriesVisited", user.getTotalBreweriesVisited());
         data.put("isPremium", user.isPremium());
 
+        List<String> permissions = buildUserPermissions();
+        Log.d(TAG, "syncUserProfile permissions: " + permissions);
+        Log.d(TAG, "syncUserProfile data: " + data);
+        Log.d(TAG, "syncUserProfile databaseId=" + databaseId
+                + ", collectionId=" + AppwriteConstants.COLLECTION_USERS
+                + ", documentId=" + user.getUserId());
+
         createDocument(AppwriteConstants.COLLECTION_USERS, user.getUserId(), data, new DocumentCallback() {
             @Override
             public void onSuccess(Document<Map<String, Object>> document) {
+                Log.d(TAG, "syncUserProfile SUCCESS â€” document created: " + document.getId());
                 if (callback != null) callback.onSuccess();
             }
             @Override
             public void onError(String message) {
+                Log.e(TAG, "syncUserProfile createDocument FAILED: " + message);
                 if (message != null && message.contains("already exists")) {
+                    Log.d(TAG, "syncUserProfile â€” document already exists, trying update...");
                     updateDocument(AppwriteConstants.COLLECTION_USERS, user.getUserId(), data,
                             new DocumentCallback() {
                                 @Override
                                 public void onSuccess(Document<Map<String, Object>> doc) {
+                                    Log.d(TAG, "syncUserProfile UPDATE SUCCESS: " + doc.getId());
                                     if (callback != null) callback.onSuccess();
                                 }
                                 @Override
                                 public void onError(String msg) {
+                                    Log.e(TAG, "syncUserProfile UPDATE FAILED: " + msg);
                                     if (callback != null) callback.onError(msg);
                                 }
                             });
@@ -550,7 +733,40 @@ public class AppwriteService {
         });
     }
 
-    // ─── Utility ──────────────────────────────────────────────────────
+    /**
+     * Builds document-level permissions for the currently authenticated user.
+     * This ensures the user can read, update, and delete their own documents.
+     * Appwrite permission format: "permission(\"role\")"
+     * If no user is logged in, returns an empty list (collection-level permissions apply).
+     */
+    private List<String> buildUserPermissions() {
+        String userId = getSavedUserId();
+        if (userId != null && !userId.startsWith("guest_")) {
+            String userRole = "user:" + userId;
+            // Appwrite v1.4+ permissions: read, update, delete, create â€” NOT "write"
+            return Arrays.asList(
+                    "read(\"" + userRole + "\")",
+                    "update(\"" + userRole + "\")",
+                    "delete(\"" + userRole + "\")"
+            );
+        }
+        // Fallback: no document-level permissions (relies on collection settings)
+        return new ArrayList<>();
+    }
+
+    /**
+     * Converts a Java epoch-millis timestamp to an ISO 8601 string
+     * that Appwrite datetime fields expect.
+     * Format: "2025-03-05T12:30:00.000+00:00"
+     */
+    private String toIso8601(long epochMillis) {
+        if (epochMillis <= 0) {
+            epochMillis = System.currentTimeMillis();
+        }
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", java.util.Locale.US);
+        sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+        return sdf.format(new java.util.Date(epochMillis));
+    }
 
     private String extractErrorMessage(Exception e) {
         Throwable cause = e.getCause();
@@ -563,6 +779,8 @@ public class AppwriteService {
         return e.getMessage() != null ? e.getMessage() : "Unknown error";
     }
 }
+
+
 
 
 
