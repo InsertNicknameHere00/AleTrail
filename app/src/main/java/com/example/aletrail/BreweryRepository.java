@@ -19,12 +19,14 @@ public class BreweryRepository {
     private AleTrailDAO breweryDao;
     private TheAleTrailAPI api;
     private ExecutorService executorService;
+    private AppwriteService appwriteService;
 
     public BreweryRepository(Context context) {
         Database database = Database.getInstance(context);
         this.breweryDao = database.AleDAO();
         this.api = RetrofitClient.getAleTrailAPI();
         this.executorService = Executors.newFixedThreadPool(2);
+        this.appwriteService = AppwriteService.getInstance(context);
     }
 
     /**
@@ -183,7 +185,16 @@ public class BreweryRepository {
     /**
      * Добавя/премахва от любими
      */
+    public interface ToggleFavoriteCallback {
+        void onComplete(boolean newState);
+    }
+
+    // Backwards-compatible: keep original method but forward to new one without callback
     public void toggleFavorite(BreweryEntity brewery) {
+        toggleFavorite(brewery, null);
+    }
+
+    public void toggleFavorite(BreweryEntity brewery, ToggleFavoriteCallback callback) {
         executorService.execute(() -> {
             try {
                 Log.d(TAG, "toggleFavorite called for: " + brewery.getName() + " (ID: " + brewery.getId() + ")");
@@ -191,27 +202,60 @@ public class BreweryRepository {
                 // First, ensure the brewery exists in the database
                 BreweryEntity existingBrewery = breweryDao.getAleByIdSync(brewery.getId());
 
+                boolean resultingState = false;
+
                 if (existingBrewery == null) {
                     // Brewery doesn't exist in DB yet, insert it first
                     Log.d(TAG, "Brewery not in DB, inserting first...");
                     brewery.setFavorite(true); // Mark as favorite
                     breweryDao.insert(brewery);
                     Log.d(TAG, "Inserted brewery with favorite=true");
+                    resultingState = true;
                 } else {
                     // Brewery exists, toggle its favorite status
                     Log.d(TAG, "Brewery exists in DB with favorite=" + existingBrewery.isFavorite());
                     existingBrewery.setFavorite(!existingBrewery.isFavorite());
                     breweryDao.update(existingBrewery);
                     Log.d(TAG, "Updated brewery favorite=" + existingBrewery.isFavorite());
+                    resultingState = existingBrewery.isFavorite();
                 }
 
                 // Verify the update
                 BreweryEntity verifyBrewery = breweryDao.getAleByIdSync(brewery.getId());
                 if (verifyBrewery != null) {
                     Log.d(TAG, "Verification - favorite state: " + verifyBrewery.isFavorite());
+                    resultingState = verifyBrewery.isFavorite();
+                }
+
+                // Sync favorite change to Appwrite Database
+                String userId = appwriteService.getSavedUserId();
+                if (userId != null && !userId.startsWith("guest_")) {
+                    if (resultingState) {
+                        // Added to favorites — sync to Appwrite
+                        appwriteService.syncFavorite(userId, brewery, new AppwriteService.SimpleCallback() {
+                            @Override
+                            public void onSuccess() {
+                                Log.d(TAG, "Favorite synced to Appwrite for: " + brewery.getName());
+                            }
+
+                            @Override
+                            public void onError(String message) {
+                                Log.e(TAG, "Failed to sync favorite to Appwrite: " + message);
+                            }
+                        });
+                    } else {
+                        // Removed from favorites — could delete from Appwrite
+                        // For now, log it; full delete requires querying Appwrite for the document ID
+                        Log.d(TAG, "Favorite removed locally for: " + brewery.getName() + " (Appwrite delete not yet implemented)");
+                    }
+                }
+
+                if (callback != null) {
+                    callback.onComplete(resultingState);
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error toggling favorite: " + e.getMessage(), e);
+                if (callback != null) callback.onComplete(brewery.isFavorite());
             }
         });
     }

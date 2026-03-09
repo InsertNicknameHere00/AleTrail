@@ -17,6 +17,7 @@ public class LoyaltyCardRepository {
     private UserDAO userDao;
     private ExecutorService executorService;
     private GamificationService gamificationService;
+    private AppwriteService appwriteService;
 
     public LoyaltyCardRepository(Context context) {
         Database database = Database.getInstance(context);
@@ -25,6 +26,7 @@ public class LoyaltyCardRepository {
         this.userDao = database.userDAO();
         this.executorService = Executors.newFixedThreadPool(2);
         this.gamificationService = new GamificationService(context);
+        this.appwriteService = AppwriteService.getInstance(context);
     }
 
     /**
@@ -41,6 +43,21 @@ public class LoyaltyCardRepository {
             long cardId = loyaltyCardDao.insert(card);
 
             Log.d(TAG, "Created loyalty card with ID: " + cardId);
+
+            // Sync to Appwrite Database
+            if (userId != null && !userId.startsWith("guest_")) {
+                appwriteService.syncLoyaltyCard(card, new AppwriteService.SimpleCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(TAG, "Loyalty card synced to Appwrite for brewery: " + breweryId);
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        Log.e(TAG, "Failed to sync loyalty card to Appwrite: " + message);
+                    }
+                });
+            }
 
             if (listener != null) {
                 listener.onCardCreated(cardId);
@@ -66,6 +83,21 @@ public class LoyaltyCardRepository {
             visit.setLatitude(latitude);
             visit.setLongitude(longitude);
             visitDao.insert(visit);
+
+            // Sync visit to Appwrite Database
+            if (userId != null && !userId.startsWith("guest_")) {
+                appwriteService.syncVisit(visit, new AppwriteService.SimpleCallback() {
+                    @Override
+                    public void onSuccess() {
+                        Log.d(TAG, "Visit synced to Appwrite for brewery: " + breweryId);
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        Log.e(TAG, "Failed to sync visit to Appwrite: " + message);
+                    }
+                });
+            }
 
             // Update user stats
             userDao.incrementTotalStamps(userId);

@@ -14,11 +14,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class LoyaltyCardAdapter extends RecyclerView.Adapter<LoyaltyCardAdapter.CardViewHolder> {
 
     private List<LoyaltyCardEntity> cards = new ArrayList<>();
     private OnCardClickListener listener;
+    private final ExecutorService executor = Executors.newCachedThreadPool();
 
     public interface OnCardClickListener {
         void onCardClick(LoyaltyCardEntity card);
@@ -106,8 +109,21 @@ public class LoyaltyCardAdapter extends RecyclerView.Adapter<LoyaltyCardAdapter.
         }
 
         public void bind(LoyaltyCardEntity card) {
-            // TODO: Load brewery name from database
-            cardBreweryName.setText("Brewery #" + card.getBreweryId());
+            // Load brewery name from database asynchronously
+            String breweryId = card.getBreweryId();
+            cardBreweryName.setText("Loading...");
+
+            executor.execute(() -> {
+                try {
+                    BreweryEntity brewery = Database.getInstance(itemView.getContext()).AleDAO().getAleByIdSync(breweryId);
+                    final String displayName = (brewery != null && brewery.getName() != null && !brewery.getName().isEmpty()) ?
+                            brewery.getName() : ("Brewery #" + breweryId);
+
+                    itemView.post(() -> cardBreweryName.setText(displayName));
+                } catch (Exception e) {
+                    itemView.post(() -> cardBreweryName.setText("Brewery #" + breweryId));
+                }
+            });
 
             stampCount.setText(card.getStamps() + "/" + card.getMaxStamps());
 

@@ -19,6 +19,9 @@ public interface UserDAO {
     @Query("SELECT * FROM user_table WHERE userId = :userId LIMIT 1")
     LiveData<UserEntity> getUserById(String userId);
 
+    @Query("SELECT * FROM user_table WHERE userId = :userId LIMIT 1")
+    UserEntity getUserByIdSync(String userId);
+
     @Query("SELECT * FROM user_table WHERE email = :email LIMIT 1")
     LiveData<UserEntity> getUserByEmail(String email);
 
@@ -33,5 +36,7 @@ public interface UserDAO {
 
     @Query("UPDATE user_table SET totalBreweriesVisited = :count WHERE userId = :userId")
     void updateTotalBreweriesVisited(String userId, int count);
-}
 
+    @Query("DELETE FROM user_table WHERE userId = :userId")
+    void deleteByUserId(String userId);
+}

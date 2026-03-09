@@ -19,7 +19,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:title="🍺 AleTrail"
+            app:title="@string/app_title_with_emoji"
             app:titleTextColor="@android:color/white"
             android:background="@android:color/transparent" />
 
@@ -56,7 +56,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Your Stats 📊"
+                        android:text="@string/stats_title"
                         android:textColor="#FFFFFF"
                         android:textSize="20sp"
                         android:textStyle="bold" />
@@ -78,7 +78,7 @@
                                 android:id="@+id/totalStampsText"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="0"
+                                android:text="@string/stat_zero"
                                 android:textColor="#FFD54F"
                                 android:textSize="32sp"
                                 android:textStyle="bold"
@@ -90,7 +90,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Stamps"
+                                android:text="@string/stats_stamps"
                                 android:textColor="#E0E0E0"
                                 android:textSize="12sp" />
                         </LinearLayout>
@@ -106,7 +106,7 @@
                                 android:id="@+id/totalVisitsText"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="0"
+                                android:text="@string/stat_zero"
                                 android:textColor="#FFD54F"
                                 android:textSize="32sp"
                                 android:textStyle="bold"
@@ -118,7 +118,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Visits"
+                                android:text="@string/stats_visits"
                                 android:textColor="#E0E0E0"
                                 android:textSize="12sp" />
                         </LinearLayout>
@@ -134,7 +134,7 @@
                                 android:id="@+id/badgesEarnedText"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="0"
+                                android:text="@string/stat_zero"
                                 android:textColor="#FFD54F"
                                 android:textSize="32sp"
                                 android:textStyle="bold"
@@ -146,7 +146,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Badges"
+                                android:text="@string/stats_badges"
                                 android:textColor="#E0E0E0"
                                 android:textSize="12sp" />
                         </LinearLayout>
@@ -165,7 +165,7 @@
                 app:boxCornerRadiusBottomStart="16dp"
                 app:boxCornerRadiusBottomEnd="16dp"
                 app:hintTextColor="#FFD54F"
-                android:hint="Search breweries..."
+                android:hint="@string/search_hint"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -196,7 +196,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🔍 Filter Breweries"
+                        android:text="@string/filter_title"
                         android:textColor="#FFD54F"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -206,7 +206,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="By State/Province:"
+                        android:text="@string/filter_state_label"
                         android:textColor="#E0E0E0"
                         android:textSize="13sp"
                         android:layout_marginBottom="8dp" />
@@ -221,7 +221,7 @@
                         app:boxCornerRadiusBottomStart="12dp"
                         app:boxCornerRadiusBottomEnd="12dp"
                         app:hintTextColor="#FFD54F"
-                        android:hint="e.g., California, CA"
+                        android:hint="@string/filter_state_hint"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -237,7 +237,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="By Brewery Type:"
+                        android:text="@string/filter_type_label"
                         android:textColor="#E0E0E0"
                         android:textSize="13sp"
                         android:layout_marginBottom="8dp" />
@@ -259,7 +259,7 @@
                                 android:id="@+id/chipAll"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="All"
+                                android:text="@string/filter_chip_all"
                                 android:checked="true"
                                 style="@style/Widget.MaterialComponents.Chip.Choice"
                                 app:chipBackgroundColor="@color/chip_background_color"
@@ -270,7 +270,7 @@
                                 android:id="@+id/chipMicro"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Micro"
+                                android:text="@string/filter_chip_micro"
                                 style="@style/Widget.MaterialComponents.Chip.Choice"
                                 app:chipBackgroundColor="@color/chip_background_color"
                                 app:chipStrokeColor="#FFD54F"
@@ -280,7 +280,7 @@
                                 android:id="@+id/chipBrewpub"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Brewpub"
+                                android:text="@string/filter_chip_brewpub"
                                 style="@style/Widget.MaterialComponents.Chip.Choice"
                                 app:chipBackgroundColor="@color/chip_background_color"
                                 app:chipStrokeColor="#FFD54F"
@@ -290,7 +290,7 @@
                                 android:id="@+id/chipRegional"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Regional"
+                                android:text="@string/filter_chip_regional"
                                 style="@style/Widget.MaterialComponents.Chip.Choice"
                                 app:chipBackgroundColor="@color/chip_background_color"
                                 app:chipStrokeColor="#FFD54F"
@@ -300,7 +300,7 @@
                                 android:id="@+id/chipLarge"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Large"
+                                android:text="@string/filter_chip_large"
                                 style="@style/Widget.MaterialComponents.Chip.Choice"
                                 app:chipBackgroundColor="@color/chip_background_color"
                                 app:chipStrokeColor="#FFD54F"
@@ -310,7 +310,7 @@
                                 android:id="@+id/chipContract"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Contract"
+                                android:text="@string/filter_chip_contract"
                                 style="@style/Widget.MaterialComponents.Chip.Choice"
                                 app:chipBackgroundColor="@color/chip_background_color"
                                 app:chipStrokeColor="#FFD54F"
@@ -320,7 +320,7 @@
                                 android:id="@+id/chipProprietor"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Proprietor"
+                                android:text="@string/filter_chip_proprietor"
                                 style="@style/Widget.MaterialComponents.Chip.Choice"
                                 app:chipBackgroundColor="@color/chip_background_color"
                                 app:chipStrokeColor="#FFD54F"
@@ -334,7 +334,7 @@
                         android:id="@+id/applyFilterButton"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
-                        android:text="Apply Filters"
+                        android:text="@string/filter_apply"
                         android:textColor="#1A1A1A"
                         android:background="@drawable/bg_button_primary"
                         android:textAllCaps="false"
@@ -356,7 +356,7 @@
                     android:layout_height="56dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
-                    android:text="📍 Find Nearby"
+                    android:text="@string/action_find_nearby"
                     android:textColor="@android:color/white"
                     android:background="@drawable/bg_button_primary"
                     android:textAllCaps="false"
@@ -368,7 +368,7 @@
                     android:layout_height="56dp"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    android:text="📷 Scan QR"
+                    android:text="@string/action_scan_qr"
                     android:textColor="@android:color/white"
                     android:background="@drawable/bg_button_primary"
                     android:textAllCaps="false"
@@ -390,22 +390,22 @@
                 <com.google.android.material.tabs.TabItem
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Breweries" />
+                    android:text="@string/tab_breweries" />
 
                 <com.google.android.material.tabs.TabItem
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="My Cards" />
+                    android:text="@string/tab_my_cards" />
 
                 <com.google.android.material.tabs.TabItem
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Badges" />
+                    android:text="@string/tab_badges" />
 
                 <com.google.android.material.tabs.TabItem
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="⭐ Favorites" />
+                    android:text="@string/tab_favorites" />
             </com.google.android.material.tabs.TabLayout>
 
             <!-- RecyclerView for content -->
@@ -427,7 +427,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        android:text="Create Card"
+        android:text="@string/fab_create_card"
         android:textColor="@android:color/white"
         app:icon="@drawable/ic_qr_code"
         app:iconTint="@android:color/white"

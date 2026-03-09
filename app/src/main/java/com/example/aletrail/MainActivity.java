@@ -30,7 +30,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST_CODE = 100;
-    private static final String CURRENT_USER_ID = "user_123"; // Mock user ID
+    private String currentUserId; // Dynamic user ID from auth
 
     // UI Components
     private RecyclerView recyclerView;
@@ -58,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private LocationService locationService;
     private GamificationService gamificationService;
     private SyncService syncService;
+    private AppwriteService appwriteService;
     private Database database;
 
     // Current tab state
@@ -80,9 +81,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Check auth — redirect to login if not authenticated
+        appwriteService = AppwriteService.getInstance(this);
+        if (!appwriteService.isLoggedInLocally()) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+        currentUserId = appwriteService.getSavedUserId();
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
+        setupToolbar();
         initializeServices();
         initializeViews();
         setupRecyclerView();
@@ -94,6 +106,18 @@ public class MainActivity extends AppCompatActivity {
         loadBreweries();
     }
 
+    private void setupToolbar() {
+        com.google.android.material.appbar.MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        toolbar.inflateMenu(R.menu.menu_main);
+        toolbar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_profile) {
+                startActivity(new Intent(this, ProfileActivity.class));
+                return true;
+            }
+            return false;
+        });
+    }
+
     private void initializeServices() {
         database = Database.getInstance(this);
         breweryRepository = new BreweryRepository(this);
@@ -103,10 +127,10 @@ public class MainActivity extends AppCompatActivity {
         syncService = new SyncService(this);
 
         // Start auto sync
-        syncService.scheduleAutoSync(CURRENT_USER_ID);
+        syncService.scheduleAutoSync(currentUserId);
 
         // Initialize badges for user
-        gamificationService.initializeBadgesForUser(CURRENT_USER_ID);
+        gamificationService.initializeBadgesForUser(currentUserId);
     }
 
     private void initializeViews() {
@@ -137,15 +161,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFavoriteClick(BreweryEntity brewery) {
                 android.util.Log.d("MainActivity", "Favorite clicked for: " + brewery.getName());
-                // Determine the NEW state (opposite of current)
-                boolean newFavoriteState = !brewery.isFavorite();
 
-                breweryRepository.toggleFavorite(brewery);
-
-                // Show correct toast based on NEW state
-                Toast.makeText(MainActivity.this,
-                    newFavoriteState ? "Added to favorites ⭐" : "Removed from favorites",
-                    Toast.LENGTH_SHORT).show();
+                // Use repository callback to get the resulting favorite state
+                breweryRepository.toggleFavorite(brewery, new BreweryRepository.ToggleFavoriteCallback() {
+                    @Override
+                    public void onComplete(boolean newState) {
+                        runOnUiThread(() -> {
+                            Toast.makeText(MainActivity.this,
+                                newState ? "Added to favorites ⭐" : "Removed from favorites",
+                                Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                });
             }
 
             @Override
@@ -168,9 +195,21 @@ public class MainActivity extends AppCompatActivity {
                     .setTitle("Remove from Favorites?")
                     .setMessage("Do you want to remove \"" + brewery.getName() + "\" from your favorites?")
                     .setPositiveButton("Remove", (dialog, which) -> {
-                        breweryRepository.toggleFavorite(brewery);
-                        Toast.makeText(MainActivity.this, "Removed from favorites ⭐", Toast.LENGTH_SHORT).show();
-                        loadFavorites(); // Reload favorites list
+                        breweryRepository.toggleFavorite(brewery, new BreweryRepository.ToggleFavoriteCallback() {
+                            @Override
+                            public void onComplete(boolean newState) {
+                                runOnUiThread(() -> {
+                                    // If the resulting state is false, it was removed
+                                    if (!newState) {
+                                        Toast.makeText(MainActivity.this, "Removed from favorites", Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        Toast.makeText(MainActivity.this, "Added to favorites ⭐", Toast.LENGTH_SHORT).show();
+                                    }
+
+                                    loadFavorites(); // Reload favorites list
+                                });
+                            }
+                        });
                     })
                     .setNegativeButton("Cancel", null)
                     .setIcon(android.R.drawable.ic_dialog_alert)
@@ -312,20 +351,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadBreweries() {
-        if (breweriesLiveData == null) {
-            breweriesLiveData = breweryRepository.getAllBreweries();
-            breweriesLiveData.observe(this, breweries -> {
-                if (breweries != null && !breweries.isEmpty()) {
-                    breweryAdapter.setBreweries(breweries);
-                } else {
-                    // Fetch from API if local DB is empty
-                    breweryRepository.fetchBreweriesByCity("San Francisco", 20);
-                }
-            });
+        // Remove any existing observers so we always attach fresh
+        if (breweriesLiveData != null) {
+            breweriesLiveData.removeObservers(this);
+            breweriesLiveData = null;
         }
+
+        breweriesLiveData = breweryRepository.getAllBreweries();
+        breweriesLiveData.observe(this, breweries -> {
+            if (breweries != null && !breweries.isEmpty()) {
+                breweryAdapter.setBreweries(breweries);
+            } else {
+                // Fetch from API if local DB is empty
+                breweryRepository.fetchBreweriesByCity("San Francisco", 20);
+            }
+        });
     }
 
     private void searchBreweries(String query) {
+        // If query is empty, reset to full list
+        if (query == null || query.trim().isEmpty()) {
+            loadBreweries();
+            return;
+        }
+
         // Remove previous observers to avoid memory leaks
         if (breweriesLiveData != null) {
             breweriesLiveData.removeObservers(this);
@@ -341,7 +390,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadUserCards() {
         if (cardsLiveData == null) {
-            cardsLiveData = loyaltyCardRepository.getUserCards(CURRENT_USER_ID);
+            cardsLiveData = loyaltyCardRepository.getUserCards(currentUserId);
             cardsLiveData.observe(this, cards -> {
                 if (cards != null) {
                     loyaltyCardAdapter.setCards(cards);
@@ -352,7 +401,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadBadges() {
         if (badgesLiveData == null) {
-            badgesLiveData = database.badgeDAO().getAllBadgesForUser(CURRENT_USER_ID);
+            badgesLiveData = database.badgeDAO().getAllBadgesForUser(currentUserId);
             badgesLiveData.observe(this, badges -> {
                 if (badges != null) {
                     badgeAdapter.setBadges(badges);
@@ -363,22 +412,29 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadFavorites() {
         android.util.Log.d("MainActivity", "loadFavorites() called");
-        if (favoritesLiveData == null) {
-            favoritesLiveData = breweryRepository.getFavoriteBreweries();
-            favoritesLiveData.observe(this, favorites -> {
-                android.util.Log.d("MainActivity", "Favorites observer triggered. Count: " + (favorites != null ? favorites.size() : "null"));
-                if (favorites != null) {
-                    for (BreweryEntity brewery : favorites) {
-                        android.util.Log.d("MainActivity", "Favorite brewery: " + brewery.getName() + " (favorite=" + brewery.isFavorite() + ")");
-                    }
-                    favoritesAdapter.setBreweries(favorites);
-                }
-            });
+
+        // Remove existing observer and re-subscribe so UI always reflects DB
+        if (favoritesLiveData != null) {
+            favoritesLiveData.removeObservers(this);
+            favoritesLiveData = null;
         }
+
+        favoritesLiveData = breweryRepository.getFavoriteBreweries();
+        favoritesLiveData.observe(this, favorites -> {
+            android.util.Log.d("MainActivity", "Favorites observer triggered. Count: " + (favorites != null ? favorites.size() : "null"));
+            if (favorites != null) {
+                for (BreweryEntity brewery : favorites) {
+                    android.util.Log.d("MainActivity", "Favorite brewery: " + brewery.getName() + " (favorite=" + brewery.isFavorite() + ")");
+                }
+                favoritesAdapter.setBreweries(favorites);
+            } else {
+                favoritesAdapter.setBreweries(new java.util.ArrayList<>());
+            }
+        });
     }
 
     private void loadUserStats() {
-        LiveData<UserEntity> userLiveData = database.userDAO().getUserById(CURRENT_USER_ID);
+        LiveData<UserEntity> userLiveData = database.userDAO().getUserById(currentUserId);
         userLiveData.observe(this, user -> {
             if (user != null) {
                 totalStampsText.setText(String.valueOf(user.getTotalStamps()));
@@ -386,7 +442,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        LiveData<Integer> badgeCountLiveData = database.badgeDAO().getEarnedBadgeCount(CURRENT_USER_ID);
+        LiveData<Integer> badgeCountLiveData = database.badgeDAO().getEarnedBadgeCount(currentUserId);
         badgeCountLiveData.observe(this, count -> {
             if (count != null) {
                 badgesEarnedText.setText(String.valueOf(count));
@@ -449,7 +505,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void createLoyaltyCard(BreweryEntity brewery) {
-        loyaltyCardRepository.createLoyaltyCard(CURRENT_USER_ID, brewery.getId(), 10, cardId -> {
+        loyaltyCardRepository.createLoyaltyCard(currentUserId, brewery.getId(), 10, cardId -> {
             runOnUiThread(() -> {
                 Toast.makeText(this, "Loyalty card created! 🎉", Toast.LENGTH_SHORT).show();
                 tabLayout.selectTab(tabLayout.getTabAt(1)); // Switch to My Cards tab

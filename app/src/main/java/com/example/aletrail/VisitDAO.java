@@ -30,5 +30,7 @@ public interface VisitDAO {
 
     @Query("UPDATE visit_table SET synced = 1 WHERE visitId = :visitId")
     void markAsSynced(int visitId);
-}
 
+    @Query("DELETE FROM visit_table WHERE userId = :userId")
+    void deleteByUserId(String userId);
+}
