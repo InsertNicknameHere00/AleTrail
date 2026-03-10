@@ -30,6 +30,9 @@ public interface LoyaltyCardDAO {
     @Query("SELECT * FROM loyalty_card_table WHERE userId = :userId AND breweryId = :breweryId LIMIT 1")
     LiveData<LoyaltyCardEntity> getCardForUserAndBrewery(String userId, String breweryId);
 
+    @Query("SELECT * FROM loyalty_card_table WHERE userId = :userId AND breweryId = :breweryId LIMIT 1")
+    LoyaltyCardEntity getCardForUserAndBrewerySync(String userId, String breweryId);
+
     @Query("UPDATE loyalty_card_table SET stamps = stamps + 1 WHERE cardId = :cardId AND stamps < maxStamps")
     void addStamp(int cardId);
 

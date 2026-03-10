@@ -37,10 +37,24 @@
 
         <activity
             android:name=".MainActivity"
-            android:exported="false" />
+            android:exported="true">
+            <!-- Deep link for email verification callback -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="aletrail"
+                    android:host="verify" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".ProfileActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".VisitHistoryActivity"
             android:exported="false" />
 
         <!-- ZXing Barcode Scanner Activity -->

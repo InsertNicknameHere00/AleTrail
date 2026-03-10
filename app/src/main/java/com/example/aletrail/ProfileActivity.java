@@ -68,6 +68,12 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
+        // Hide system bars for immersive experience
+        androidx.core.view.WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        androidx.core.view.WindowInsetsControllerCompat ic = androidx.core.view.WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        ic.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars());
+        ic.setSystemBarsBehavior(androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+
         appwriteService = AppwriteService.getInstance(this);
         database = Database.getInstance(this);
         currentUserId = appwriteService.getSavedUserId();
@@ -127,6 +133,68 @@ public class ProfileActivity extends AppCompatActivity {
         profileCard = findViewById(R.id.profileCard);
         guestBanner = findViewById(R.id.guestBanner);
         profileLoading = findViewById(R.id.profileLoading);
+
+        // Theme toggle
+        com.google.android.material.switchmaterial.SwitchMaterial darkModeSwitch = findViewById(R.id.darkModeSwitch);
+        android.content.SharedPreferences prefs = getSharedPreferences("aletrail_prefs", MODE_PRIVATE);
+        boolean isDark = prefs.getBoolean("dark_mode", true);
+        darkModeSwitch.setChecked(isDark);
+        darkModeSwitch.setOnCheckedChangeListener((btn, checked) -> {
+            prefs.edit().putBoolean("dark_mode", checked).apply();
+            androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(
+                    checked ? androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+                            : androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO);
+        });
+
+        // Email verification
+        android.widget.LinearLayout verifyEmailRow = findViewById(R.id.verifyEmailRow);
+        android.widget.Button verifyEmailButton = findViewById(R.id.verifyEmailButton);
+        android.widget.TextView verifyEmailStatus = findViewById(R.id.verifyEmailStatus);
+        if (!isGuest) {
+            verifyEmailRow.setVisibility(View.VISIBLE);
+            // Check verification status via Appwrite
+            new Thread(() -> {
+                try {
+                    boolean verified = appwriteService.isEmailVerified();
+                    runOnUiThread(() -> {
+                        if (verified) {
+                            verifyEmailStatus.setText(R.string.profile_email_verified);
+                            verifyEmailStatus.setTextColor(0xFF81C784);
+                            verifyEmailButton.setVisibility(View.GONE);
+                        } else {
+                            verifyEmailStatus.setText(R.string.profile_email_not_verified);
+                            verifyEmailStatus.setTextColor(0xFFFF8A80);
+                            verifyEmailButton.setVisibility(View.VISIBLE);
+                        }
+                    });
+                } catch (Exception e) {
+                    Log.e("ProfileActivity", "Error checking email verification: " + e.getMessage());
+                }
+            }).start();
+
+            verifyEmailButton.setOnClickListener(v -> {
+                verifyEmailButton.setEnabled(false);
+                appwriteService.sendVerificationEmail(new AppwriteService.SimpleCallback() {
+                    @Override
+                    public void onSuccess() {
+                        runOnUiThread(() -> {
+                            android.widget.Toast.makeText(ProfileActivity.this,
+                                    R.string.profile_verify_email_sent, android.widget.Toast.LENGTH_SHORT).show();
+                            verifyEmailButton.setEnabled(true);
+                        });
+                    }
+                    @Override
+                    public void onError(String message) {
+                        runOnUiThread(() -> {
+                            android.widget.Toast.makeText(ProfileActivity.this,
+                                    getString(R.string.profile_verify_email_error, message),
+                                    android.widget.Toast.LENGTH_LONG).show();
+                            verifyEmailButton.setEnabled(true);
+                        });
+                    }
+                });
+            });
+        }
 
         if (isGuest) {
             guestBanner.setVisibility(View.VISIBLE);
@@ -326,6 +394,7 @@ public class ProfileActivity extends AppCompatActivity {
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
         finish();
     }
 

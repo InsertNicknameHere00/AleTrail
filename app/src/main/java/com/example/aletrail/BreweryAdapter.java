@@ -25,6 +25,8 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
         void onBreweryClick(BreweryEntity brewery);
         void onFavoriteClick(BreweryEntity brewery);
         void onCreateCardClick(BreweryEntity brewery);
+        void onBreweryLongPress(BreweryEntity brewery);
+        void onRateClick(BreweryEntity brewery);
     }
 
     public BreweryAdapter(OnBreweryClickListener listener) {
@@ -98,6 +100,8 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
         private ImageButton favoriteButton;
         private Button createCardButton;
         private Button removeFavoriteButton;
+        private Button rateButton;
+        private Button qrCodeButton;
         private ImageView breweryIcon;
 
         public BreweryViewHolder(@NonNull View itemView) {
@@ -110,6 +114,8 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
             favoriteButton = itemView.findViewById(R.id.favoriteButton);
             createCardButton = itemView.findViewById(R.id.createCardButton);
             removeFavoriteButton = itemView.findViewById(R.id.removeFavoriteButton);
+            rateButton = itemView.findViewById(R.id.rateButton);
+            qrCodeButton = itemView.findViewById(R.id.qrCodeButton);
             breweryIcon = itemView.findViewById(R.id.breweryIcon);
         }
 
@@ -187,12 +193,32 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
 
             favoriteButton.setOnClickListener(v -> {
                 if (listener != null) {
+                    // Toggle icon immediately for responsive feel
+                    boolean newState = !brewery.isFavorite();
+                    brewery.setFavorite(newState);
+                    favoriteButton.setImageResource(newState ?
+                            android.R.drawable.star_big_on : android.R.drawable.star_big_off);
                     listener.onFavoriteClick(brewery);
                 }
             });
 
             createCardButton.setOnClickListener(v -> {
                 if (listener != null) listener.onCreateCardClick(brewery);
+            });
+
+            rateButton.setOnClickListener(v -> {
+                if (listener != null) listener.onRateClick(brewery);
+            });
+
+            // QR button — same as long press
+            qrCodeButton.setOnClickListener(v -> {
+                if (listener != null) listener.onBreweryLongPress(brewery);
+            });
+
+            // Long press to show brewery stamp QR code
+            itemView.setOnLongClickListener(v -> {
+                if (listener != null) listener.onBreweryLongPress(brewery);
+                return true;
             });
         }
     }

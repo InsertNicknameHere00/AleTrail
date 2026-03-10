@@ -150,7 +150,8 @@ public class SyncService {
      */
     private void syncBadges(String userId) {
         try {
-            List<BadgeEntity> badges = database.badgeDAO().getEarnedBadgesSync(userId);
+            // Sync all badges (earned and unearned) so Appwrite has the full set
+            List<BadgeEntity> badges = database.badgeDAO().getAllBadgesForUserSync(userId);
             for (BadgeEntity badge : badges) {
                 appwriteService.syncBadge(badge, new AppwriteService.SimpleCallback() {
                     @Override

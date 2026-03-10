@@ -1,6 +1,7 @@
 package com.example.aletrail;
 
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "loyalty_card_table")
@@ -13,14 +14,13 @@ public class LoyaltyCardEntity {
     private String breweryId;
     private int stamps;
     private int maxStamps;
-    private String qrCodeValue;
     private boolean active;
 
-    public LoyaltyCardEntity(String userId, String breweryId, int maxStamps, String qrCodeValue) {
+    @Ignore
+    public LoyaltyCardEntity(String userId, String breweryId, int maxStamps) {
         this.userId = userId;
         this.breweryId = breweryId;
         this.maxStamps = maxStamps;
-        this.qrCodeValue = qrCodeValue;
         this.stamps = 0;
         this.active = true;
     }
@@ -68,13 +68,6 @@ public class LoyaltyCardEntity {
         this.maxStamps = maxStamps;
     }
 
-    public String getQrCodeValue() {
-        return qrCodeValue;
-    }
-
-    public void setQrCodeValue(String qrCodeValue) {
-        this.qrCodeValue = qrCodeValue;
-    }
 
     public boolean isActive() {
         return active;

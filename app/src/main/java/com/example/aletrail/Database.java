@@ -12,7 +12,7 @@ import androidx.room.RoomDatabase;
         VisitEntity.class,
         BadgeEntity.class,
         BeerRatingEntity.class
-}, version = 3, exportSchema = false)
+}, version = 4, exportSchema = false)
 public abstract class Database extends RoomDatabase {
     public abstract AleTrailDAO AleDAO();
     public abstract LoyaltyCardDAO loyaltyCardDAO();

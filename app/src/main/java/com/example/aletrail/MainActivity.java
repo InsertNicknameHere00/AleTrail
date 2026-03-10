@@ -6,7 +6,9 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -14,14 +16,20 @@ import androidx.annotation.NonNull;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.lifecycle.LiveData;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
 
@@ -30,20 +38,25 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST_CODE = 100;
-    private String currentUserId; // Dynamic user ID from auth
+    private String currentUserId;
 
     // UI Components
     private RecyclerView recyclerView;
     private TabLayout tabLayout;
     private TextInputEditText searchEditText;
+    private TextInputLayout searchInputLayout;
     private TextInputEditText stateFilterInput;
-    private Button findNearbyButton;
-    private Button scanQRButton;
+    private FloatingActionButton fabFindNearby;
+    private FloatingActionButton fabScanQR;
     private Button applyFilterButton;
     private ExtendedFloatingActionButton fabAddCard;
     private TextView totalStampsText;
     private TextView totalVisitsText;
     private TextView badgesEarnedText;
+    private TextView statsUserName;
+    private TextView statsAvatarInitial;
+    private ImageView statsAvatarImage;
+    private TextView statsDiscountText;
     private ChipGroup typeFilterChipGroup;
 
     // Adapters
@@ -82,10 +95,18 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Apply saved theme preference
+        android.content.SharedPreferences prefs = getSharedPreferences("aletrail_prefs", MODE_PRIVATE);
+        boolean isDark = prefs.getBoolean("dark_mode", true);
+        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(
+                isDark ? androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
+                        : androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO);
+
         // Check auth — redirect to login if not authenticated
         appwriteService = AppwriteService.getInstance(this);
         if (!appwriteService.isLoggedInLocally()) {
             startActivity(new Intent(this, LoginActivity.class));
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
             finish();
             return;
         }
@@ -93,6 +114,12 @@ public class MainActivity extends AppCompatActivity {
 
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+
+        // Hide system bars for immersive experience
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        WindowInsetsControllerCompat insetsController = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        insetsController.hide(WindowInsetsCompat.Type.statusBars());
+        insetsController.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
 
         setupToolbar();
         initializeServices();
@@ -104,6 +131,42 @@ public class MainActivity extends AppCompatActivity {
         requestPermissions();
         loadUserStats();
         loadBreweries();
+
+        // Handle email verification deep link: aletrail://verify?userId=...&secret=...
+        handleVerificationDeepLink(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        handleVerificationDeepLink(intent);
+    }
+
+    private void handleVerificationDeepLink(Intent intent) {
+        if (intent == null || intent.getData() == null) return;
+        android.net.Uri data = intent.getData();
+        if ("aletrail".equals(data.getScheme()) && "verify".equals(data.getHost())) {
+            String userId = data.getQueryParameter("userId");
+            String secret = data.getQueryParameter("secret");
+            if (userId != null && secret != null) {
+                Toast.makeText(this, R.string.toast_verifying_email, Toast.LENGTH_SHORT).show();
+                appwriteService.completeEmailVerification(userId, secret, new AppwriteService.SimpleCallback() {
+                    @Override
+                    public void onSuccess() {
+                        runOnUiThread(() ->
+                            Toast.makeText(MainActivity.this, R.string.toast_email_verified, Toast.LENGTH_LONG).show()
+                        );
+                    }
+                    @Override
+                    public void onError(String message) {
+                        runOnUiThread(() ->
+                            Toast.makeText(MainActivity.this,
+                                getString(R.string.toast_email_verify_failed, message), Toast.LENGTH_LONG).show()
+                        );
+                    }
+                });
+            }
+        }
     }
 
     private void setupToolbar() {
@@ -112,6 +175,7 @@ public class MainActivity extends AppCompatActivity {
         toolbar.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.action_profile) {
                 startActivity(new Intent(this, ProfileActivity.class));
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                 return true;
             }
             return false;
@@ -137,14 +201,19 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         tabLayout = findViewById(R.id.tabLayout);
         searchEditText = findViewById(R.id.searchEditText);
+        searchInputLayout = findViewById(R.id.searchInputLayout);
         stateFilterInput = findViewById(R.id.stateFilterInput);
-        findNearbyButton = findViewById(R.id.findNearbyButton);
-        scanQRButton = findViewById(R.id.scanQRButton);
+        fabFindNearby = findViewById(R.id.fabFindNearby);
+        fabScanQR = findViewById(R.id.fabScanQR);
         applyFilterButton = findViewById(R.id.applyFilterButton);
         fabAddCard = findViewById(R.id.fabAddCard);
         totalStampsText = findViewById(R.id.totalStampsText);
         totalVisitsText = findViewById(R.id.totalVisitsText);
         badgesEarnedText = findViewById(R.id.badgesEarnedText);
+        statsUserName = findViewById(R.id.statsUserName);
+        statsAvatarInitial = findViewById(R.id.statsAvatarInitial);
+        statsAvatarImage = findViewById(R.id.statsAvatarImage);
+        statsDiscountText = findViewById(R.id.statsDiscountText);
         typeFilterChipGroup = findViewById(R.id.typeFilterChipGroup);
     }
 
@@ -168,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onComplete(boolean newState) {
                         runOnUiThread(() -> {
                             Toast.makeText(MainActivity.this,
-                                newState ? "Added to favorites ⭐" : "Removed from favorites",
+                                newState ? getString(R.string.toast_added_to_favorites) : getString(R.string.toast_removed_from_favorites),
                                 Toast.LENGTH_SHORT).show();
                         });
                     }
@@ -178,6 +247,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCreateCardClick(BreweryEntity brewery) {
                 createLoyaltyCard(brewery);
+            }
+
+            @Override
+            public void onBreweryLongPress(BreweryEntity brewery) {
+                showBreweryStampQR(brewery);
+            }
+
+            @Override
+            public void onRateClick(BreweryEntity brewery) {
+                showRateBreweryDialog(brewery);
             }
         });
 
@@ -192,26 +271,24 @@ public class MainActivity extends AppCompatActivity {
             public void onFavoriteClick(BreweryEntity brewery) {
                 // Show confirmation dialog before removing from favorites
                 new android.app.AlertDialog.Builder(MainActivity.this)
-                    .setTitle("Remove from Favorites?")
-                    .setMessage("Do you want to remove \"" + brewery.getName() + "\" from your favorites?")
-                    .setPositiveButton("Remove", (dialog, which) -> {
+                    .setTitle(R.string.dialog_remove_favorites_title)
+                    .setMessage(getString(R.string.dialog_remove_favorites_message, brewery.getName()))
+                    .setPositiveButton(R.string.dialog_remove, (dialog, which) -> {
                         breweryRepository.toggleFavorite(brewery, new BreweryRepository.ToggleFavoriteCallback() {
                             @Override
                             public void onComplete(boolean newState) {
                                 runOnUiThread(() -> {
-                                    // If the resulting state is false, it was removed
                                     if (!newState) {
-                                        Toast.makeText(MainActivity.this, "Removed from favorites", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(MainActivity.this, R.string.toast_removed_from_favorites, Toast.LENGTH_SHORT).show();
                                     } else {
-                                        Toast.makeText(MainActivity.this, "Added to favorites ⭐", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(MainActivity.this, R.string.toast_added_to_favorites, Toast.LENGTH_SHORT).show();
                                     }
-
-                                    loadFavorites(); // Reload favorites list
+                                    loadFavorites();
                                 });
                             }
                         });
                     })
-                    .setNegativeButton("Cancel", null)
+                    .setNegativeButton(R.string.dialog_cancel, null)
                     .setIcon(android.R.drawable.ic_dialog_alert)
                     .show();
             }
@@ -220,18 +297,23 @@ public class MainActivity extends AppCompatActivity {
             public void onCreateCardClick(BreweryEntity brewery) {
                 createLoyaltyCard(brewery);
             }
+
+            @Override
+            public void onBreweryLongPress(BreweryEntity brewery) {
+                showBreweryStampQR(brewery);
+            }
+
+            @Override
+            public void onRateClick(BreweryEntity brewery) {
+                showRateBreweryDialog(brewery);
+            }
         }, true); // Pass true to show the remove button
 
         // Setup Loyalty Card Adapter
         loyaltyCardAdapter = new LoyaltyCardAdapter(new LoyaltyCardAdapter.OnCardClickListener() {
             @Override
             public void onCardClick(LoyaltyCardEntity card) {
-                Toast.makeText(MainActivity.this, "Card ID: " + card.getCardId(), Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onQRCodeClick(LoyaltyCardEntity card) {
-                showQRCodeDialog(card);
+                Toast.makeText(MainActivity.this, getString(R.string.toast_card_id, String.valueOf(card.getCardId())), Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -275,44 +357,54 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void switchTab(int position) {
-        android.view.View filterCard = findViewById(R.id.filterCard);
-        switch (position) {
-            case 0: // Breweries
-                recyclerView.setAdapter(breweryAdapter);
-                loadBreweries();
-                fabAddCard.hide();
-                searchEditText.setVisibility(android.view.View.VISIBLE);
-                filterCard.setVisibility(android.view.View.VISIBLE);
-                break;
-            case 1: // My Cards
-                recyclerView.setAdapter(loyaltyCardAdapter);
-                loadUserCards();
-                fabAddCard.show();
-                searchEditText.setVisibility(android.view.View.GONE);
-                filterCard.setVisibility(android.view.View.GONE);
-                break;
-            case 2: // Badges
-                recyclerView.setAdapter(badgeAdapter);
-                loadBadges();
-                fabAddCard.hide();
-                searchEditText.setVisibility(android.view.View.GONE);
-                filterCard.setVisibility(android.view.View.GONE);
-                break;
-            case 3: // Favorites
-                recyclerView.setAdapter(favoritesAdapter);
-                loadFavorites();
-                fabAddCard.hide();
-                searchEditText.setVisibility(android.view.View.GONE);
-                filterCard.setVisibility(android.view.View.GONE);
-                break;
-        }
+        View filterCard = findViewById(R.id.filterCard);
+
+        // Crossfade animation
+        recyclerView.animate().alpha(0f).setDuration(150).withEndAction(() -> {
+            switch (position) {
+                case 0: // Breweries
+                    recyclerView.setLayoutManager(new LinearLayoutManager(this));
+                    recyclerView.setAdapter(breweryAdapter);
+                    loadBreweries();
+                    fabAddCard.hide();
+                    searchInputLayout.setVisibility(View.VISIBLE);
+                    filterCard.setVisibility(View.VISIBLE);
+                    break;
+                case 1: // My Cards
+                    recyclerView.setLayoutManager(new LinearLayoutManager(this));
+                    recyclerView.setAdapter(loyaltyCardAdapter);
+                    loadUserCards();
+                    loadBestDiscount(); // Refresh discount display
+                    fabAddCard.show();
+                    searchInputLayout.setVisibility(View.GONE);
+                    filterCard.setVisibility(View.GONE);
+                    break;
+                case 2: // Badges — grid layout
+                    recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+                    recyclerView.setAdapter(badgeAdapter);
+                    loadBadges();
+                    fabAddCard.hide();
+                    searchInputLayout.setVisibility(View.GONE);
+                    filterCard.setVisibility(View.GONE);
+                    break;
+                case 3: // Favorites
+                    recyclerView.setLayoutManager(new LinearLayoutManager(this));
+                    recyclerView.setAdapter(favoritesAdapter);
+                    loadFavorites();
+                    fabAddCard.hide();
+                    searchInputLayout.setVisibility(View.GONE);
+                    filterCard.setVisibility(View.GONE);
+                    break;
+            }
+            recyclerView.animate().alpha(1f).setDuration(200).start();
+        }).start();
     }
 
     private void setupButtons() {
-        findNearbyButton.setOnClickListener(v -> findNearbyBreweries());
-        scanQRButton.setOnClickListener(v -> scanQRCode());
+        fabFindNearby.setOnClickListener(v -> findNearbyBreweries());
+        fabScanQR.setOnClickListener(v -> scanQRCode());
         fabAddCard.setOnClickListener(v -> {
-            Toast.makeText(this, "Select a brewery to create a card", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.toast_select_brewery_for_card, Toast.LENGTH_SHORT).show();
             tabLayout.selectTab(tabLayout.getTabAt(0));
         });
         applyFilterButton.setOnClickListener(v -> applyFilters());
@@ -439,6 +531,16 @@ public class MainActivity extends AppCompatActivity {
             if (user != null) {
                 totalStampsText.setText(String.valueOf(user.getTotalStamps()));
                 totalVisitsText.setText(String.valueOf(user.getTotalVisits()));
+
+                // Display profile name and avatar initial
+                String name = user.getDisplayName();
+                if (name != null && !name.isEmpty()) {
+                    statsUserName.setText(name);
+                    statsAvatarInitial.setText(String.valueOf(name.charAt(0)).toUpperCase());
+                } else {
+                    statsUserName.setText(R.string.stats_title);
+                    statsAvatarInitial.setText("?");
+                }
             }
         });
 
@@ -448,6 +550,53 @@ public class MainActivity extends AppCompatActivity {
                 badgesEarnedText.setText(String.valueOf(count));
             }
         });
+
+        // Load best discount from all loyalty cards
+        loadBestDiscount();
+    }
+
+    private void loadBestDiscount() {
+        new Thread(() -> {
+            try {
+                java.util.List<LoyaltyCardEntity> cards = database.loyaltyCardDAO().getCardsForUserSync(currentUserId);
+                if (cards == null || cards.isEmpty()) {
+                    runOnUiThread(() -> {
+                        statsDiscountText.setText(R.string.stats_discount_none);
+                        statsDiscountText.setVisibility(View.VISIBLE);
+                    });
+                    return;
+                }
+
+                int bestDiscount = 0;
+                String bestBreweryId = null;
+                for (LoyaltyCardEntity card : cards) {
+                    int discount = LoyaltyCardAdapter.calculateDiscount(card.getStamps());
+                    if (discount > bestDiscount) {
+                        bestDiscount = discount;
+                        bestBreweryId = card.getBreweryId();
+                    }
+                }
+
+                if (bestDiscount > 0 && bestBreweryId != null) {
+                    // Look up brewery name
+                    BreweryEntity brewery = database.AleDAO().getAleByIdSync(bestBreweryId);
+                    String breweryName = (brewery != null && brewery.getName() != null)
+                            ? brewery.getName() : bestBreweryId;
+                    final int finalDiscount = bestDiscount;
+                    runOnUiThread(() -> {
+                        statsDiscountText.setText(getString(R.string.stats_discount_best, finalDiscount, breweryName));
+                        statsDiscountText.setVisibility(View.VISIBLE);
+                    });
+                } else {
+                    runOnUiThread(() -> {
+                        statsDiscountText.setText(R.string.stats_discount_none);
+                        statsDiscountText.setVisibility(View.VISIBLE);
+                    });
+                }
+            } catch (Exception e) {
+                android.util.Log.e("MainActivity", "Error loading discount: " + e.getMessage());
+            }
+        }).start();
     }
 
     private void findNearbyBreweries() {
@@ -490,51 +639,121 @@ public class MainActivity extends AppCompatActivity {
         });
 
     private void processQRCode(String qrValue) {
-        if (QRCodeService.isValidQRCode(qrValue)) {
-            String userId = QRCodeService.extractUserIdFromQR(qrValue);
-            String breweryId = QRCodeService.extractBreweryIdFromQR(qrValue);
+        // ── Brewery Stamp QR (ALETRAIL_STAMP:breweryId:token) ──
+        if (QRCodeService.isValidStampQR(qrValue)) {
+            String breweryId = QRCodeService.extractBreweryIdFromStampQR(qrValue);
 
-            // Add stamp to card
             locationService.getCurrentLocation(location -> {
-                // TODO: Find card by userId and breweryId, then add stamp
-                Toast.makeText(this, "Stamp added! 🎉", Toast.LENGTH_SHORT).show();
+                double lat = location != null ? location.getLatitude() : 0.0;
+                double lon = location != null ? location.getLongitude() : 0.0;
+
+                loyaltyCardRepository.processStampFromQR(currentUserId, breweryId, lat, lon,
+                    new LoyaltyCardRepository.StampResultCallback() {
+                        @Override
+                        public void onSuccess(String breweryName) {
+                            runOnUiThread(() -> Toast.makeText(MainActivity.this,
+                                    getString(R.string.toast_stamp_added) + " " + breweryName,
+                                    Toast.LENGTH_SHORT).show());
+                        }
+
+                        @Override
+                        public void onError(String message) {
+                            runOnUiThread(() -> Toast.makeText(MainActivity.this,
+                                    message, Toast.LENGTH_LONG).show());
+                        }
+                    });
             });
         } else {
-            Toast.makeText(this, "Invalid QR code", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.toast_invalid_qr, Toast.LENGTH_SHORT).show();
         }
     }
 
     private void createLoyaltyCard(BreweryEntity brewery) {
-        loyaltyCardRepository.createLoyaltyCard(currentUserId, brewery.getId(), 10, cardId -> {
+        loyaltyCardRepository.createLoyaltyCard(currentUserId, brewery.getId(), 100, cardId -> {
             runOnUiThread(() -> {
-                Toast.makeText(this, "Loyalty card created! 🎉", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.toast_loyalty_card_created, Toast.LENGTH_SHORT).show();
                 tabLayout.selectTab(tabLayout.getTabAt(1)); // Switch to My Cards tab
             });
         });
     }
 
-    private void showQRCodeDialog(LoyaltyCardEntity card) {
-        // Create dialog
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
-        android.view.View dialogView = getLayoutInflater().inflate(android.R.layout.simple_list_item_1, null);
-
-        // Generate QR code bitmap
-        android.graphics.Bitmap qrBitmap = QRCodeService.generateQRCodeBitmap(card.getQrCodeValue(), 512, 512);
+    /**
+     * Shows a brewery stamp QR code for customers to scan (long-press on brewery item).
+     */
+    private void showBreweryStampQR(BreweryEntity brewery) {
+        String stampQR = QRCodeService.generateBreweryStampQR(brewery.getId());
+        android.graphics.Bitmap qrBitmap = QRCodeService.generateQRCodeBitmap(stampQR, 512, 512);
 
         if (qrBitmap != null) {
             android.widget.ImageView imageView = new android.widget.ImageView(this);
             imageView.setImageBitmap(qrBitmap);
             imageView.setPadding(50, 50, 50, 50);
 
-            builder.setTitle("Scan this QR Code")
-                   .setView(imageView)
-                   .setPositiveButton("Close", (dialog, which) -> dialog.dismiss())
-                   .setNeutralButton("Share", (dialog, which) -> shareCard(card))
-                   .create()
-                   .show();
+            new android.app.AlertDialog.Builder(this)
+                .setTitle(R.string.dialog_brewery_stamp_qr_title)
+                .setMessage(getString(R.string.dialog_brewery_stamp_qr_message, brewery.getName()))
+                .setView(imageView)
+                .setPositiveButton(R.string.dialog_close, (dialog, which) -> dialog.dismiss())
+                .create()
+                .show();
         } else {
-            Toast.makeText(this, "Failed to generate QR code", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.toast_qr_generation_failed, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /**
+     * Shows a dialog to rate a brewery.
+     */
+    private void showRateBreweryDialog(BreweryEntity brewery) {
+        android.view.View dialogView = getLayoutInflater().inflate(R.layout.dialog_rate_brewery, null);
+        android.widget.RatingBar ratingBar = dialogView.findViewById(R.id.ratingBar);
+        android.widget.EditText beerNameInput = dialogView.findViewById(R.id.beerNameInput);
+        android.widget.EditText commentInput = dialogView.findViewById(R.id.commentInput);
+
+        new android.app.AlertDialog.Builder(this)
+            .setTitle(getString(R.string.dialog_rate_brewery_title) + " — " + brewery.getName())
+            .setView(dialogView)
+            .setPositiveButton("Submit", (dialog, which) -> {
+                float rating = ratingBar.getRating();
+                String beerName = beerNameInput.getText().toString().trim();
+                String comment = commentInput.getText().toString().trim();
+
+                if (rating == 0) {
+                    Toast.makeText(this, "Please select a rating", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Save rating
+                new Thread(() -> {
+                    BeerRatingEntity ratingEntity = new BeerRatingEntity();
+                    ratingEntity.setUserId(currentUserId);
+                    ratingEntity.setBreweryId(brewery.getId());
+                    ratingEntity.setBeerName(beerName.isEmpty() ? null : beerName);
+                    ratingEntity.setRating(rating);
+                    ratingEntity.setComment(comment.isEmpty() ? null : comment);
+                    database.beerRatingDAO().insert(ratingEntity);
+
+                    // Sync to Appwrite
+                    appwriteService.syncRating(ratingEntity, new AppwriteService.SimpleCallback() {
+                        @Override
+                        public void onSuccess() {
+                            android.util.Log.d("MainActivity", "Rating synced to Appwrite");
+                        }
+                        @Override
+                        public void onError(String message) {
+                            android.util.Log.e("MainActivity", "Rating sync failed: " + message);
+                        }
+                    });
+
+                    // Check rating badges
+                    int totalRatings = database.beerRatingDAO().getTotalRatingCountSync(currentUserId);
+                    gamificationService.checkRatingBadges(currentUserId, totalRatings);
+
+                    runOnUiThread(() -> Toast.makeText(this, R.string.toast_rating_saved, Toast.LENGTH_SHORT).show());
+                }).start();
+            })
+            .setNegativeButton(R.string.dialog_cancel, null)
+            .show();
     }
 
     private void deleteCard(LoyaltyCardEntity card) {
@@ -582,24 +801,23 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void showQRCode(LoyaltyCardEntity card) {
-        showQRCodeDialog(card);
-    }
-
     private void shareCard(LoyaltyCardEntity card) {
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("text/plain");
-        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "My Brewery Loyalty Card");
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_loyalty_card_subject));
         shareIntent.putExtra(Intent.EXTRA_TEXT,
             "Check out my loyalty card!\n\n" +
             "Card ID: " + card.getCardId() + "\n" +
-            "Stamps: " + card.getStamps() + "/" + card.getMaxStamps() + "\n" +
-            "QR Code: " + card.getQrCodeValue());
-        startActivity(Intent.createChooser(shareIntent, "Share loyalty card"));
+            "Stamps: " + card.getStamps() + "/" + card.getMaxStamps());
+        startActivity(Intent.createChooser(shareIntent, getString(R.string.share_loyalty_card_chooser)));
     }
 
     private void showVisitHistory(LoyaltyCardEntity card) {
-        // ...existing code...
+        Intent intent = new Intent(this, VisitHistoryActivity.class);
+        intent.putExtra("cardId", card.getCardId());
+        intent.putExtra("breweryId", card.getBreweryId());
+        startActivity(intent);
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
 
     private void applyFilters() {

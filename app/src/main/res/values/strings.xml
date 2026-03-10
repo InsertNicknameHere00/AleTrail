@@ -34,8 +34,34 @@
 
     <string name="content_brewery_icon">Brewery icon</string>
     <string name="content_add_favorite">Add to favorites</string>
-    <string name="button_create_loyalty_card">🎫 Create Loyalty Card</string>
-    <string name="button_remove_favorite">⭐ Remove from Favorites</string>
+    <string name="button_create_loyalty_card">🎫 Card</string>
+    <string name="button_remove_favorite">❌ Remove</string>
+
+    <!-- Rate Brewery -->
+    <string name="button_rate_brewery">⭐ Rate</string>
+    <string name="dialog_rate_brewery_title">Rate Brewery</string>
+    <string name="hint_beer_name">Beer Name (optional)</string>
+    <string name="hint_rating_comment">Comment (optional)</string>
+    <string name="toast_rating_saved">Rating saved! ⭐</string>
+    <string name="toast_rating_failed">Failed to save rating</string>
+
+    <!-- QR Stamp -->
+    <string name="dialog_brewery_stamp_qr_title">Brewery Stamp QR</string>
+    <string name="dialog_brewery_stamp_qr_message">Customers can scan this QR to stamp their loyalty card for %1$s</string>
+    <string name="toast_qr_generation_failed">Failed to generate QR code</string>
+
+    <!-- Discount -->
+    <string name="discount_label">Current Discount: %1$d%%</string>
+    <string name="discount_cycle_label">Discount stamps: %1$d/10</string>
+
+    <!-- Visit History -->
+    <string name="dialog_visit_history_title">Visit History</string>
+    <string name="visit_history_empty">No visits recorded yet</string>
+    <string name="visit_history_item">%1$s — Stamp #%2$d</string>
+    <string name="visit_history_title_with_name">Visits — %1$s</string>
+
+    <!-- Loading -->
+    <string name="loading_text">Loading…</string>
 
     <string name="loyalty_card_title">Loyalty Card</string>
     <string name="content_show_qr">Show QR Code</string>
@@ -44,6 +70,7 @@
     <string name="button_history">History</string>
 
     <string name="badge_earned">✓ Earned</string>
+    <string name="badge_earned_with_date">✓ Earned %1$s</string>
     <string name="default_badge_icon">🏆</string>
 
     <string name="toast_added_to_favorites">Added to favorites ⭐</string>
@@ -54,6 +81,7 @@
     <string name="dialog_cancel">Cancel</string>
     <string name="toast_card_id">Card ID: %1$s</string>
     <string name="toast_select_brewery_create_card">Select a brewery to create a card</string>
+    <string name="toast_select_brewery_for_card">Select a brewery to create a card</string>
     <string name="toast_searching_nearby">Searching nearby breweries...</string>
     <string name="toast_unable_get_location">Unable to get location</string>
     <string name="prompt_scan_qr">Scan a brewery QR code</string>
@@ -79,7 +107,7 @@
     <string name="toast_location_required_for_stamp">Location required to add stamp</string>
 
     <string name="share_loyalty_card_subject">My Brewery Loyalty Card</string>
-    <string name="share_loyalty_card_text">Check out my loyalty card!\n\nCard ID: %1$d\nStamps: %2$d/%3$d\nQR Code: %4$s</string>
+    <string name="share_loyalty_card_text">Check out my loyalty card!\n\nCard ID: %1$d\nStamps: %2$d/%3$d</string>
     <string name="share_loyalty_card_chooser">Share loyalty card</string>
 
     <string name="loyalty_card_loading">Loading...</string>
@@ -138,4 +166,23 @@
     <string name="profile_photo_take">Take Photo</string>
     <string name="profile_photo_gallery">Choose from Gallery</string>
     <string name="profile_photo_remove">Remove Photo</string>
+
+    <!-- Settings -->
+    <string name="profile_settings_title">⚙️ Settings</string>
+    <string name="profile_dark_mode">🌙 Dark Mode</string>
+    <string name="profile_email_not_verified">Email not verified</string>
+    <string name="profile_email_verified">✓ Email verified</string>
+    <string name="profile_verify_email">Verify</string>
+    <string name="profile_verify_email_sent">Verification email sent!</string>
+    <string name="profile_verify_email_error">Failed to send verification: %1$s</string>
+    <string name="button_qr_code">📱 QR</string>
+
+    <!-- Email verification deep link -->
+    <string name="toast_verifying_email">Verifying email…</string>
+    <string name="toast_email_verified">Email verified! ✓</string>
+    <string name="toast_email_verify_failed">Verification failed: %1$s</string>
+
+    <!-- Stats discount -->
+    <string name="stats_discount_best">🎁 Best discount: %1$d%% at %2$s</string>
+    <string name="stats_discount_none">🍺 No active discounts yet</string>
 </resources>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Custom AleTrail theme attributes -->
+    <attr name="aleCardBackground" format="color" />
+    <attr name="aleCardBackgroundLighter" format="color" />
+    <attr name="aleTextPrimary" format="color" />
+    <attr name="aleTextSecondary" format="color" />
+    <attr name="aleTextHint" format="color" />
+    <attr name="aleGold" format="color" />
+    <attr name="aleButtonText" format="color" />
+    <attr name="aleBadgeCircle" format="color" />
+    <attr name="aleBadgeCircleStroke" format="color" />
+    <attr name="aleBadgeNameEarned" format="color" />
+    <attr name="aleBadgeNameUnearned" format="color" />
+    <attr name="aleBadgeDescriptionText" format="color" />
+    <attr name="aleChipEarned" format="color" />
+    <attr name="aleChipStroke" format="color" />
+    <attr name="aleDiscountGreen" format="color" />
+    <attr name="aleOverlayBg" format="color" />
+</resources>
+

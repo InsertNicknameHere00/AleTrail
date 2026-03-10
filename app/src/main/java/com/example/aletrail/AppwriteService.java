@@ -627,7 +627,6 @@ public class AppwriteService {
         data.put("breweryId", card.getBreweryId());
         data.put("stamps", card.getStamps());
         data.put("maxStamps", card.getMaxStamps());
-        data.put("qrCodeValue", card.getQrCodeValue() != null ? card.getQrCodeValue() : "");
         data.put("active", card.isActive());
 
         createDocument(AppwriteConstants.COLLECTION_LOYALTY_CARDS, data, new DocumentCallback() {
@@ -662,14 +661,37 @@ public class AppwriteService {
         data.put("breweryId", badge.getBreweryId() != null && !badge.getBreweryId().isEmpty()
                 ? badge.getBreweryId() : null);
 
-        createDocument(AppwriteConstants.COLLECTION_BADGES, data, new DocumentCallback() {
+        // Use deterministic doc ID so updates don't create duplicates
+        String docId = badge.getUserId() + "_" + badge.getBadgeType();
+        docId = docId.replaceAll("[^a-zA-Z0-9._-]", "_");
+        if (docId.length() > 36) {
+            docId = docId.substring(0, 36);
+        }
+
+        final String finalDocId = docId;
+
+        // Try update first, create if doesn't exist
+        updateDocument(AppwriteConstants.COLLECTION_BADGES, finalDocId, data, new DocumentCallback() {
             @Override
             public void onSuccess(Document<Map<String, Object>> document) {
+                Log.d(TAG, "Badge updated in Appwrite: " + badge.getBadgeType());
                 if (callback != null) callback.onSuccess();
             }
             @Override
             public void onError(String message) {
-                if (callback != null) callback.onError(message);
+                // Doc doesn't exist yet, create it
+                createDocument(AppwriteConstants.COLLECTION_BADGES, finalDocId, data, new DocumentCallback() {
+                    @Override
+                    public void onSuccess(Document<Map<String, Object>> document) {
+                        Log.d(TAG, "Badge created in Appwrite: " + badge.getBadgeType());
+                        if (callback != null) callback.onSuccess();
+                    }
+                    @Override
+                    public void onError(String msg) {
+                        Log.e(TAG, "Badge sync failed: " + msg);
+                        if (callback != null) callback.onError(msg);
+                    }
+                });
             }
         });
     }
@@ -777,6 +799,93 @@ public class AppwriteService {
             return e.getMessage();
         }
         return e.getMessage() != null ? e.getMessage() : "Unknown error";
+    }
+
+    /**
+     * Checks if the current user's email is verified.
+     * Must be called from a background thread.
+     */
+    @SuppressWarnings("unchecked")
+    public boolean isEmailVerified() {
+        try {
+            final boolean[] result = {false};
+            final java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+
+            executor.execute(() -> {
+                try {
+                    User<Map<String, Object>> user = (User<Map<String, Object>>) BuildersKt.runBlocking(
+                            EmptyCoroutineContext.INSTANCE,
+                            (scope, cont) -> {
+                                try {
+                                    return account.get(cont);
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                    );
+                    result[0] = user.getEmailVerification();
+                } catch (Exception e) {
+                    Log.e(TAG, "isEmailVerified error: " + e.getMessage());
+                } finally {
+                    latch.countDown();
+                }
+            });
+
+            latch.await(5, java.util.concurrent.TimeUnit.SECONDS);
+            return result[0];
+        } catch (Exception e) {
+            Log.e(TAG, "isEmailVerified exception: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Sends a verification email to the current user.
+     */
+    public void sendVerificationEmail(SimpleCallback callback) {
+        executor.execute(() -> {
+            try {
+                BuildersKt.runBlocking(
+                    EmptyCoroutineContext.INSTANCE,
+                    (scope, cont) -> {
+                        try {
+                            return account.createVerification("aletrail://verify", cont);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                );
+                if (callback != null) callback.onSuccess();
+            } catch (Exception e) {
+                Log.e(TAG, "sendVerificationEmail failed: " + e.getMessage());
+                if (callback != null) callback.onError(extractErrorMessage(e));
+            }
+        });
+    }
+
+    /**
+     * Completes email verification using the userId and secret from the deep link.
+     */
+    public void completeEmailVerification(String userId, String secret, SimpleCallback callback) {
+        executor.execute(() -> {
+            try {
+                BuildersKt.runBlocking(
+                    EmptyCoroutineContext.INSTANCE,
+                    (scope, cont) -> {
+                        try {
+                            return account.updateVerification(userId, secret, cont);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                );
+                Log.d(TAG, "Email verification completed for user: " + userId);
+                if (callback != null) callback.onSuccess();
+            } catch (Exception e) {
+                Log.e(TAG, "completeEmailVerification failed: " + e.getMessage());
+                if (callback != null) callback.onError(extractErrorMessage(e));
+            }
+        });
     }
 }
 

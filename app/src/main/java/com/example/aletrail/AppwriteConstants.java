@@ -28,7 +28,6 @@ package com.example.aletrail;
  *   - breweryId (string, 255)
  *   - stamps (integer)
  *   - maxStamps (integer)
- *   - qrCodeValue (string, 500)
  *   - active (boolean)
  *
  * Collection: visits
