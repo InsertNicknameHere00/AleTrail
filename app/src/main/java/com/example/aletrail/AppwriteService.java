@@ -849,7 +849,7 @@ public class AppwriteService {
                     EmptyCoroutineContext.INSTANCE,
                     (scope, cont) -> {
                         try {
-                            return account.createVerification("aletrail://verify", cont);
+                            return account.createVerification("https://fra.cloud.appwrite.io/v1/account/verification", cont);
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }

@@ -4,7 +4,8 @@ import androidx.room.Entity;
 import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
-@Entity(tableName = "loyalty_card_table")
+@Entity(tableName = "loyalty_card_table",
+        indices = {@androidx.room.Index(value = {"userId", "breweryId"}, unique = true)})
 public class LoyaltyCardEntity {
 
     @PrimaryKey(autoGenerate = true)

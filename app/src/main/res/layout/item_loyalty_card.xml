@@ -20,7 +20,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/loyalty_card_title"
-            android:textColor="#E0E0E0"
+            android:textColor="?attr/aleTextSecondary"
             android:textSize="12sp"
             android:textStyle="bold"
             android:letterSpacing="0.15"
@@ -35,7 +35,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:textColor="#FFFFFF"
+            android:textColor="?attr/aleTextPrimary"
             android:textSize="22sp"
             android:textStyle="bold"
             android:maxLines="2"
@@ -52,7 +52,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:text="@string/label_stamps_collected"
-            android:textColor="#B0BEC5"
+            android:textColor="?attr/aleTextHint"
             android:textSize="12sp"
             android:textStyle="bold"
             android:textAllCaps="true"
@@ -65,7 +65,7 @@
             android:id="@+id/stampCount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#FFD54F"
+            android:textColor="?attr/aleGold"
             android:textSize="14sp"
             android:textStyle="bold"
             tools:text="3/100"
@@ -148,7 +148,8 @@
                 style="?attr/materialButtonOutlinedStyle"
                 android:layout_width="0dp"
                 android:layout_height="40dp"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
                 android:layout_weight="1"
                 android:text="@string/button_history"
                 android:textAllCaps="true"
@@ -156,6 +157,20 @@
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:backgroundTint="#33FFFFFF" />
+
+            <Button
+                android:id="@+id/deleteCardButton"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:text="@string/dialog_delete"
+                android:textAllCaps="true"
+                android:textColor="#FF8A80"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:backgroundTint="#33FF8A80" />
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

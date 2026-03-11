@@ -90,7 +90,7 @@ public class LoyaltyCardAdapter extends RecyclerView.Adapter<LoyaltyCardAdapter.
      * Every 2 stamps = 5% discount, up to stamp 10 (max 25%).
      * Resets every 10 stamps cycle.
      */
-    static int calculateDiscount(int totalStamps) {
+    public static int calculateDiscount(int totalStamps) {
         int cycleStamps = totalStamps % 10;
         return (cycleStamps / 2) * 5;
     }
@@ -102,6 +102,7 @@ public class LoyaltyCardAdapter extends RecyclerView.Adapter<LoyaltyCardAdapter.
         private ProgressBar stampProgressBar;
         private Button shareButton;
         private Button viewHistoryButton;
+        private Button deleteCardButton;
         private TextView discountText;
 
         public CardViewHolder(@NonNull View itemView) {
@@ -112,6 +113,7 @@ public class LoyaltyCardAdapter extends RecyclerView.Adapter<LoyaltyCardAdapter.
             stampProgressBar = itemView.findViewById(R.id.stampProgressBar);
             shareButton = itemView.findViewById(R.id.shareButton);
             viewHistoryButton = itemView.findViewById(R.id.viewHistoryButton);
+            deleteCardButton = itemView.findViewById(R.id.deleteCardButton);
             discountText = itemView.findViewById(R.id.discountText);
         }
 
@@ -179,7 +181,12 @@ public class LoyaltyCardAdapter extends RecyclerView.Adapter<LoyaltyCardAdapter.
                 if (listener != null) listener.onHistoryClick(card);
             });
 
-            // Long press to delete
+            // Delete button click
+            deleteCardButton.setOnClickListener(v -> {
+                if (listener != null) listener.onDeleteClick(card);
+            });
+
+            // Long press to delete (keep as alternative)
             itemView.setOnLongClickListener(v -> {
                 if (listener != null) listener.onDeleteClick(card);
                 return true;

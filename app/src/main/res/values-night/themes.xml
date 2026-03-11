@@ -1,11 +1,11 @@
 <resources>
-    <!-- Base application theme - dark variant. -->
+    <!-- Base application theme - DARK variant (beer gradient) -->
     <style name="Base.Theme.AleTrail" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/ale_primary</item>
         <item name="colorPrimaryDark">@color/ale_primary_dark</item>
         <item name="colorAccent">@color/ale_accent</item>
 
-        <!-- Custom AleTrail attributes (dark) -->
+        <!-- Custom AleTrail attributes (dark — the original beer gradient look) -->
         <item name="aleCardBackground">@color/ale_bg_card</item>
         <item name="aleCardBackgroundLighter">@color/ale_bg_card_lighter</item>
         <item name="aleTextPrimary">@color/text_primary_dark</item>

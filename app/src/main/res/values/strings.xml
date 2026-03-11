@@ -185,4 +185,49 @@
     <!-- Stats discount -->
     <string name="stats_discount_best">🎁 Best discount: %1$d%% at %2$s</string>
     <string name="stats_discount_none">🍺 No active discounts yet</string>
+
+    <!-- Duplicate card -->
+    <string name="toast_duplicate_card">You already have a loyalty card for this brewery!</string>
+
+    <!-- Badge unlock date -->
+    <string name="badge_unlocked_on">Unlocked on %1$s</string>
+
+    <!-- New strings for hardcoded text replacements -->
+    <string name="dialog_submit">Submit</string>
+    <string name="toast_select_rating">Please select a rating</string>
+
+    <!-- Ratings screen -->
+    <string name="ratings_title">🍺 My Reviews</string>
+    <string name="ratings_empty">No ratings yet. Rate a brewery to get started!</string>
+    <string name="rating_item_beer">Beer: %1$s</string>
+    <string name="rating_item_no_beer">General Review</string>
+
+    <!-- Cartes Map -->
+    <string name="map_title">📍 Favorites Map</string>
+    <string name="map_empty">No favorites with location data to show</string>
+    <string name="map_creating">Creating map…</string>
+    <string name="map_created">Map created with %1$d breweries!</string>
+    <string name="map_error">Failed to create map: %1$s</string>
+    <string name="map_open_browser">Open in Browser</string>
+    <string name="map_create_button">📍 View Favorites on Map</string>
+
+    <!-- Business Brewery -->
+    <string name="business_title">🏭 My Business</string>
+    <string name="business_create">Create Business Brewery</string>
+    <string name="business_name_hint">Business Name</string>
+    <string name="business_type_hint">Brewery Type (e.g., micro, brewpub)</string>
+    <string name="business_street_hint">Street Address</string>
+    <string name="business_city_hint">City</string>
+    <string name="business_state_hint">State/Province</string>
+    <string name="business_postal_hint">Postal Code</string>
+    <string name="business_country_hint">Country</string>
+    <string name="business_phone_hint">Phone</string>
+    <string name="business_website_hint">Website URL</string>
+    <string name="business_created">Business brewery created! 🎉</string>
+    <string name="business_qr_title">Your Business QR Code</string>
+    <string name="business_qr_message">Customers scan this to stamp their loyalty card for %1$s</string>
+    <string name="business_empty_name">Please enter a business name</string>
+
+    <!-- Scroll to top -->
+    <string name="action_scroll_top">Scroll to top</string>
 </resources>

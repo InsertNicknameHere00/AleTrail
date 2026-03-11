@@ -182,9 +182,9 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
 
             // Update favorite button icon based on state
             if (brewery.isFavorite()) {
-                favoriteButton.setImageResource(android.R.drawable.star_big_on);
+                favoriteButton.setImageResource(android.R.drawable.btn_star_big_on);
             } else {
-                favoriteButton.setImageResource(android.R.drawable.star_big_off);
+                favoriteButton.setImageResource(android.R.drawable.btn_star_big_off);
             }
 
             itemView.setOnClickListener(v -> {
@@ -197,7 +197,7 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
                     boolean newState = !brewery.isFavorite();
                     brewery.setFavorite(newState);
                     favoriteButton.setImageResource(newState ?
-                            android.R.drawable.star_big_on : android.R.drawable.star_big_off);
+                            android.R.drawable.btn_star_big_on : android.R.drawable.btn_star_big_off);
                     listener.onFavoriteClick(brewery);
                 }
             });

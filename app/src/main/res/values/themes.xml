@@ -1,28 +1,28 @@
 <resources>
-    <!-- Base application theme. -->
+    <!-- Base application theme - LIGHT variant -->
     <style name="Base.Theme.AleTrail" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand colors -->
         <item name="colorPrimary">@color/ale_primary</item>
         <item name="colorPrimaryDark">@color/ale_primary_dark</item>
         <item name="colorAccent">@color/ale_accent</item>
 
-        <!-- Custom AleTrail attributes -->
-        <item name="aleCardBackground">@color/ale_bg_card</item>
-        <item name="aleCardBackgroundLighter">@color/ale_bg_card_lighter</item>
-        <item name="aleTextPrimary">@color/text_primary_dark</item>
-        <item name="aleTextSecondary">@color/text_secondary_dark</item>
-        <item name="aleTextHint">@color/text_hint_dark</item>
-        <item name="aleGold">#FFD54F</item>
-        <item name="aleButtonText">@color/card_text_on_gradient</item>
+        <!-- Custom AleTrail attributes - LIGHT mode -->
+        <item name="aleCardBackground">#FFF8E1</item>
+        <item name="aleCardBackgroundLighter">#FFFDE7</item>
+        <item name="aleTextPrimary">#212121</item>
+        <item name="aleTextSecondary">#616161</item>
+        <item name="aleTextHint">#9E9E9E</item>
+        <item name="aleGold">#E65100</item>
+        <item name="aleButtonText">#FFFFFF</item>
         <item name="aleBadgeCircle">#33FFB300</item>
         <item name="aleBadgeCircleStroke">#66FFB300</item>
-        <item name="aleBadgeNameEarned">#FFD54F</item>
-        <item name="aleBadgeNameUnearned">#9E9E9E</item>
-        <item name="aleBadgeDescriptionText">#99FFFFFF</item>
+        <item name="aleBadgeNameEarned">#E65100</item>
+        <item name="aleBadgeNameUnearned">#BDBDBD</item>
+        <item name="aleBadgeDescriptionText">#757575</item>
         <item name="aleChipEarned">#33FFB300</item>
         <item name="aleChipStroke">#FFB300</item>
-        <item name="aleDiscountGreen">#81C784</item>
-        <item name="aleOverlayBg">#E6000000</item>
+        <item name="aleDiscountGreen">#2E7D32</item>
+        <item name="aleOverlayBg">#F5F5F5</item>
     </style>
 
     <style name="Theme.AleTrail" parent="Base.Theme.AleTrail" />

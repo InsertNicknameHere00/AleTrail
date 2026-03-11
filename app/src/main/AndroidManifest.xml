@@ -57,6 +57,14 @@
             android:name=".VisitHistoryActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".RatingsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".CreateBusinessActivity"
+            android:exported="false" />
+
         <!-- ZXing Barcode Scanner Activity -->
         <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"

@@ -32,12 +32,12 @@
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:paddingBottom="8dp"
-            app:boxBackgroundColor="#3D2F1A"
+            app:boxBackgroundColor="?attr/aleCardBackgroundLighter"
             app:boxCornerRadiusTopStart="16dp"
             app:boxCornerRadiusTopEnd="16dp"
             app:boxCornerRadiusBottomStart="16dp"
             app:boxCornerRadiusBottomEnd="16dp"
-            app:hintTextColor="#FFD54F"
+            app:hintTextColor="?attr/aleGold"
             android:hint="@string/search_hint"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
@@ -45,10 +45,104 @@
                 android:id="@+id/searchEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="#FFFFFF"
+                android:textColor="?attr/aleTextPrimary"
                 android:drawableStart="@drawable/ic_location"
                 android:drawablePadding="8dp" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Sticky Filter Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/filterCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="4dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="?attr/aleCardBackgroundLighter">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter_title"
+                    android:textColor="?attr/aleGold"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        app:boxBackgroundColor="?attr/aleCardBackground"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        app:hintTextColor="?attr/aleGold"
+                        android:hint="@string/filter_state_hint"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/stateFilterInput"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="?attr/aleTextPrimary"
+                            android:inputType="text"
+                            android:maxLines="1"
+                            android:textSize="13sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:layout_marginBottom="8dp">
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/typeFilterChipGroup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:singleSelection="true"
+                        app:selectionRequired="false">
+
+                        <com.google.android.material.chip.Chip android:id="@+id/chipAll" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/filter_chip_all" android:checked="true" style="@style/Widget.MaterialComponents.Chip.Choice" app:chipBackgroundColor="@color/chip_background_color" app:chipStrokeColor="@color/ale_primary" app:chipStrokeWidth="1dp" />
+                        <com.google.android.material.chip.Chip android:id="@+id/chipMicro" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/filter_chip_micro" style="@style/Widget.MaterialComponents.Chip.Choice" app:chipBackgroundColor="@color/chip_background_color" app:chipStrokeColor="@color/ale_primary" app:chipStrokeWidth="1dp" />
+                        <com.google.android.material.chip.Chip android:id="@+id/chipBrewpub" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/filter_chip_brewpub" style="@style/Widget.MaterialComponents.Chip.Choice" app:chipBackgroundColor="@color/chip_background_color" app:chipStrokeColor="@color/ale_primary" app:chipStrokeWidth="1dp" />
+                        <com.google.android.material.chip.Chip android:id="@+id/chipRegional" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/filter_chip_regional" style="@style/Widget.MaterialComponents.Chip.Choice" app:chipBackgroundColor="@color/chip_background_color" app:chipStrokeColor="@color/ale_primary" app:chipStrokeWidth="1dp" />
+                        <com.google.android.material.chip.Chip android:id="@+id/chipLarge" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/filter_chip_large" style="@style/Widget.MaterialComponents.Chip.Choice" app:chipBackgroundColor="@color/chip_background_color" app:chipStrokeColor="@color/ale_primary" app:chipStrokeWidth="1dp" />
+                        <com.google.android.material.chip.Chip android:id="@+id/chipContract" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/filter_chip_contract" style="@style/Widget.MaterialComponents.Chip.Choice" app:chipBackgroundColor="@color/chip_background_color" app:chipStrokeColor="@color/ale_primary" app:chipStrokeWidth="1dp" />
+                        <com.google.android.material.chip.Chip android:id="@+id/chipProprietor" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/filter_chip_proprietor" style="@style/Widget.MaterialComponents.Chip.Choice" app:chipBackgroundColor="@color/chip_background_color" app:chipStrokeColor="@color/ale_primary" app:chipStrokeWidth="1dp" />
+
+                    </com.google.android.material.chip.ChipGroup>
+                </HorizontalScrollView>
+
+                <Button
+                    android:id="@+id/applyFilterButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="42dp"
+                    android:text="@string/filter_apply"
+                    android:textColor="?attr/aleButtonText"
+                    android:background="@drawable/bg_button_primary"
+                    android:textAllCaps="false"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -71,14 +165,14 @@
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="8dp"
-                app:cardBackgroundColor="#2D1F0A">
+                app:cardBackgroundColor="?attr/aleCardBackground">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="16dp"
-                    android:background="#E6000000">
+                    android:background="?attr/aleOverlayBg">
 
                     <!-- Profile row -->
                     <LinearLayout
@@ -111,8 +205,8 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:gravity="center"
-                                android:text="\?"
-                                android:textColor="#FFD54F"
+                                android:text="@string/stat_zero"
+                                android:textColor="?attr/aleGold"
                                 android:textSize="20sp"
                                 android:textStyle="bold" />
                         </FrameLayout>
@@ -128,7 +222,7 @@
                                 android:id="@+id/statsUserName"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textColor="#FFFFFF"
+                                android:textColor="?attr/aleTextPrimary"
                                 android:textSize="16sp"
                                 android:textStyle="bold"
                                 android:maxLines="1"
@@ -139,7 +233,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/stats_title"
-                                android:textColor="#B0BEC5"
+                                android:textColor="?attr/aleTextHint"
                                 android:textSize="11sp" />
                         </LinearLayout>
                     </LinearLayout>
@@ -162,7 +256,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/stat_zero"
-                                android:textColor="#FFD54F"
+                                android:textColor="?attr/aleGold"
                                 android:textSize="28sp"
                                 android:textStyle="bold" />
 
@@ -170,7 +264,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/stats_stamps"
-                                android:textColor="#E0E0E0"
+                                android:textColor="?attr/aleTextSecondary"
                                 android:textSize="11sp" />
                         </LinearLayout>
 
@@ -186,7 +280,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/stat_zero"
-                                android:textColor="#FFD54F"
+                                android:textColor="?attr/aleGold"
                                 android:textSize="28sp"
                                 android:textStyle="bold" />
 
@@ -194,7 +288,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/stats_visits"
-                                android:textColor="#E0E0E0"
+                                android:textColor="?attr/aleTextSecondary"
                                 android:textSize="11sp" />
                         </LinearLayout>
 
@@ -210,7 +304,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/stat_zero"
-                                android:textColor="#FFD54F"
+                                android:textColor="?attr/aleGold"
                                 android:textSize="28sp"
                                 android:textStyle="bold" />
 
@@ -218,7 +312,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/stats_badges"
-                                android:textColor="#E0E0E0"
+                                android:textColor="?attr/aleTextSecondary"
                                 android:textSize="11sp" />
                         </LinearLayout>
                     </LinearLayout>
@@ -235,105 +329,6 @@
                         android:visibility="gone"
                         tools:text="🎁 Best discount: 15% at Crafty Brewery" />
 
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Filter Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/filterCard"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="#3D2F1A">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/filter_title"
-                        android:textColor="#FFD54F"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="12dp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/filter_state_label"
-                        android:textColor="#E0E0E0"
-                        android:textSize="13sp"
-                        android:layout_marginBottom="8dp" />
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="12dp"
-                        app:boxBackgroundColor="#2D1F0A"
-                        app:boxCornerRadiusTopStart="12dp"
-                        app:boxCornerRadiusTopEnd="12dp"
-                        app:boxCornerRadiusBottomStart="12dp"
-                        app:boxCornerRadiusBottomEnd="12dp"
-                        app:hintTextColor="#FFD54F"
-                        android:hint="@string/filter_state_hint"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/stateFilterInput"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:textColor="#FFFFFF"
-                            android:inputType="text"
-                            android:maxLines="1" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/filter_type_label"
-                        android:textColor="#E0E0E0"
-                        android:textSize="13sp"
-                        android:layout_marginBottom="8dp" />
-
-                    <HorizontalScrollView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:scrollbars="none"
-                        android:layout_marginBottom="12dp">
-
-                        <com.google.android.material.chip.ChipGroup
-                            android:id="@+id/typeFilterChipGroup"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            app:singleSelection="true"
-                            app:selectionRequired="false">
-
-                            <com.google.android.material.chip.Chip android:id="@+id/chipAll" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/filter_chip_all" android:checked="true" style="@style/Widget.MaterialComponents.Chip.Choice" app:chipBackgroundColor="@color/chip_background_color" app:chipStrokeColor="#FFD54F" app:chipStrokeWidth="1dp" />
-                            <com.google.android.material.chip.Chip android:id="@+id/chipMicro" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/filter_chip_micro" style="@style/Widget.MaterialComponents.Chip.Choice" app:chipBackgroundColor="@color/chip_background_color" app:chipStrokeColor="#FFD54F" app:chipStrokeWidth="1dp" />
-                            <com.google.android.material.chip.Chip android:id="@+id/chipBrewpub" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/filter_chip_brewpub" style="@style/Widget.MaterialComponents.Chip.Choice" app:chipBackgroundColor="@color/chip_background_color" app:chipStrokeColor="#FFD54F" app:chipStrokeWidth="1dp" />
-                            <com.google.android.material.chip.Chip android:id="@+id/chipRegional" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/filter_chip_regional" style="@style/Widget.MaterialComponents.Chip.Choice" app:chipBackgroundColor="@color/chip_background_color" app:chipStrokeColor="#FFD54F" app:chipStrokeWidth="1dp" />
-                            <com.google.android.material.chip.Chip android:id="@+id/chipLarge" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/filter_chip_large" style="@style/Widget.MaterialComponents.Chip.Choice" app:chipBackgroundColor="@color/chip_background_color" app:chipStrokeColor="#FFD54F" app:chipStrokeWidth="1dp" />
-                            <com.google.android.material.chip.Chip android:id="@+id/chipContract" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/filter_chip_contract" style="@style/Widget.MaterialComponents.Chip.Choice" app:chipBackgroundColor="@color/chip_background_color" app:chipStrokeColor="#FFD54F" app:chipStrokeWidth="1dp" />
-                            <com.google.android.material.chip.Chip android:id="@+id/chipProprietor" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/filter_chip_proprietor" style="@style/Widget.MaterialComponents.Chip.Choice" app:chipBackgroundColor="@color/chip_background_color" app:chipStrokeColor="#FFD54F" app:chipStrokeWidth="1dp" />
-
-                        </com.google.android.material.chip.ChipGroup>
-                    </HorizontalScrollView>
-
-                    <Button
-                        android:id="@+id/applyFilterButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:text="@string/filter_apply"
-                        android:textColor="#1A1A1A"
-                        android:background="@drawable/bg_button_primary"
-                        android:textAllCaps="false"
-                        android:textStyle="bold" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -367,31 +362,52 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Floating Action Buttons -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabFindNearby"
+    <!-- Floating Action Buttons - Left group -->
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|start"
         android:layout_marginStart="16dp"
         android:layout_marginBottom="24dp"
-        android:contentDescription="@string/action_find_nearby"
-        app:srcCompat="@drawable/ic_location"
-        app:tint="@android:color/white"
-        app:backgroundTint="#E65100" />
+        android:orientation="vertical">
 
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabScanQR"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:contentDescription="@string/action_scan_qr"
+            app:srcCompat="@drawable/ic_qr_code"
+            app:tint="@android:color/white"
+            app:backgroundTint="#FFB300"
+            app:fabSize="normal" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabFindNearby"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/action_find_nearby"
+            app:srcCompat="@drawable/ic_location"
+            app:tint="@android:color/white"
+            app:backgroundTint="#E65100" />
+
+    </LinearLayout>
+
+    <!-- Scroll to top FAB -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabScanQR"
+        android:id="@+id/fabScrollTop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
         android:layout_marginBottom="24dp"
-        android:contentDescription="@string/action_scan_qr"
-        app:srcCompat="@drawable/ic_qr_code"
+        android:contentDescription="@string/action_scroll_top"
+        android:src="@android:drawable/arrow_up_float"
         app:tint="@android:color/white"
-        app:backgroundTint="#FFB300"
-        app:fabSize="normal" />
+        app:backgroundTint="#795548"
+        app:fabSize="mini"
+        android:visibility="gone" />
 
+    <!-- Create card FAB - right side -->
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabAddCard"
         android:layout_width="wrap_content"

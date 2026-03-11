@@ -42,6 +42,19 @@ public class GamificationService {
     public static final String BADGE_FIVE_STAR = "FIVE_STAR";
     public static final String BADGE_GLOBETROTTER = "GLOBETROTTER";
     public static final String BADGE_DEDICATION = "DEDICATION";
+    // New badges batch 2
+    public static final String BADGE_PARTY_STARTER = "PARTY_STARTER";
+    public static final String BADGE_HOMEBODY = "HOMEBODY";
+    public static final String BADGE_DATA_NERD = "DATA_NERD";
+    public static final String BADGE_COMEBACK_KID = "COMEBACK_KID";
+    public static final String BADGE_SWEET_TOOTH = "SWEET_TOOTH";
+    public static final String BADGE_CITY_EXPLORER = "CITY_EXPLORER";
+    public static final String BADGE_TECH_SAVVY = "TECH_SAVVY";
+    public static final String BADGE_SUPPORTER = "SUPPORTER";
+    public static final String BADGE_QUARTER_CENTURY = "QUARTER_CENTURY";
+    public static final String BADGE_STAMP_STREAK = "STAMP_STREAK";
+    public static final String BADGE_BREWPUB_FAN = "BREWPUB_FAN";
+    public static final String BADGE_DOUBLE_DIGITS = "DOUBLE_DIGITS";
 
     public GamificationService(Context context) {
         this.database = Database.getInstance(context);
@@ -83,6 +96,20 @@ public class GamificationService {
             createBadgeIfMissing(userId, BADGE_FIVE_STAR, "⭐ Five Star", "Give 5 five-star ratings", "⭐", 5);
             createBadgeIfMissing(userId, BADGE_GLOBETROTTER, "🧭 Globetrotter", "Visit breweries in 10 states/countries", "🧭", 10);
             createBadgeIfMissing(userId, BADGE_DEDICATION, "❤️ Dedication", "Visit the same brewery 10 times", "❤️", 10);
+
+            // New badges batch 2
+            createBadgeIfMissing(userId, BADGE_PARTY_STARTER, "🎈 Party Starter", "Share your first loyalty card", "🎈", 1);
+            createBadgeIfMissing(userId, BADGE_HOMEBODY, "🏠 Homebody", "Visit the same brewery 5 times", "🏠", 5);
+            createBadgeIfMissing(userId, BADGE_DATA_NERD, "📊 Data Nerd", "Rate 30 beers", "📊", 30);
+            createBadgeIfMissing(userId, BADGE_COMEBACK_KID, "🔄 Comeback Kid", "Collect 30 stamps", "🔄", 30);
+            createBadgeIfMissing(userId, BADGE_SWEET_TOOTH, "🍯 Sweet Tooth", "Give 3 five-star ratings", "🍯", 3);
+            createBadgeIfMissing(userId, BADGE_CITY_EXPLORER, "🏙️ City Explorer", "Visit 5 breweries in one city", "🏙️", 5);
+            createBadgeIfMissing(userId, BADGE_TECH_SAVVY, "📱 Tech Savvy", "Scan 10 QR codes", "📱", 10);
+            createBadgeIfMissing(userId, BADGE_SUPPORTER, "🤝 Supporter", "Create 5 loyalty cards", "🤝", 5);
+            createBadgeIfMissing(userId, BADGE_QUARTER_CENTURY, "🎯 Quarter Century", "Reach 25 total visits", "🎯", 25);
+            createBadgeIfMissing(userId, BADGE_STAMP_STREAK, "🔥 Stamp Streak", "Collect 20 stamps", "🔥", 20);
+            createBadgeIfMissing(userId, BADGE_BREWPUB_FAN, "🍽️ Brewpub Fan", "Visit 3 brewpubs", "🍽️", 3);
+            createBadgeIfMissing(userId, BADGE_DOUBLE_DIGITS, "🔟 Double Digits", "Reach 10 total visits", "🔟", 10);
 
             Log.d(TAG, "Initialized badges for user: " + userId);
         });
@@ -138,8 +165,14 @@ public class GamificationService {
             if (totalVisits >= 1) {
                 unlockBadgeByType(userId, BADGE_FIRST_VISIT);
             }
+            checkBadge(userId, BADGE_DOUBLE_DIGITS, totalVisits, 10);
+            checkBadge(userId, BADGE_QUARTER_CENTURY, totalVisits, 25);
             checkBadge(userId, BADGE_HALF_CENTURY, totalVisits, 50);
             checkBadge(userId, BADGE_CENTURION, totalVisits, 100);
+
+            // Stamp-based (additional)
+            checkBadge(userId, BADGE_STAMP_STREAK, totalStamps, 20);
+            checkBadge(userId, BADGE_COMEBACK_KID, totalStamps, 30);
 
             // Brewery exploration badges
             checkBadge(userId, BADGE_EXPLORER, uniqueBreweriesCount, 10);

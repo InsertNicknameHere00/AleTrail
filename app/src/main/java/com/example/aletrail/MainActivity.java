@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton fabScanQR;
     private Button applyFilterButton;
     private ExtendedFloatingActionButton fabAddCard;
+    private FloatingActionButton fabScrollTop;
     private TextView totalStampsText;
     private TextView totalVisitsText;
     private TextView badgesEarnedText;
@@ -207,6 +208,7 @@ public class MainActivity extends AppCompatActivity {
         fabScanQR = findViewById(R.id.fabScanQR);
         applyFilterButton = findViewById(R.id.applyFilterButton);
         fabAddCard = findViewById(R.id.fabAddCard);
+        fabScrollTop = findViewById(R.id.fabScrollTop);
         totalStampsText = findViewById(R.id.totalStampsText);
         totalVisitsText = findViewById(R.id.totalVisitsText);
         badgesEarnedText = findViewById(R.id.badgesEarnedText);
@@ -333,9 +335,21 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Setup Badge Adapter
-        badgeAdapter = new BadgeAdapter(badge ->
-            Toast.makeText(MainActivity.this, badge.getBadgeName(), Toast.LENGTH_SHORT).show()
-        );
+        badgeAdapter = new BadgeAdapter(badge -> {
+            if (badge.isEarned() && badge.getEarnedTimestamp() > 0) {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("MMM dd, yyyy 'at' HH:mm", java.util.Locale.getDefault());
+                String dateStr = sdf.format(new java.util.Date(badge.getEarnedTimestamp()));
+                Toast.makeText(MainActivity.this,
+                        badge.getBadgeName() + "\n" + getString(R.string.badge_unlocked_on, dateStr),
+                        Toast.LENGTH_LONG).show();
+            } else if (badge.isEarned()) {
+                Toast.makeText(MainActivity.this, badge.getBadgeName() + " ✓", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(MainActivity.this,
+                        badge.getBadgeName() + " — " + badge.getBadgeDescription(),
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
 
         recyclerView.setAdapter(breweryAdapter);
     }
@@ -408,6 +422,26 @@ public class MainActivity extends AppCompatActivity {
             tabLayout.selectTab(tabLayout.getTabAt(0));
         });
         applyFilterButton.setOnClickListener(v -> applyFilters());
+
+        // Scroll-to-top button
+        fabScrollTop.setOnClickListener(v -> {
+            recyclerView.scrollToPosition(0);
+            androidx.core.widget.NestedScrollView scrollView = (androidx.core.widget.NestedScrollView) findViewById(R.id.recyclerView).getParent().getParent();
+            scrollView.smoothScrollTo(0, 0);
+            fabScrollTop.setVisibility(View.GONE);
+        });
+
+        // Show scroll-to-top when scrolled down
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView rv, int dx, int dy) {
+                if (dy > 0 && fabScrollTop.getVisibility() != View.VISIBLE) {
+                    fabScrollTop.setVisibility(View.VISIBLE);
+                } else if (!rv.canScrollVertically(-1)) {
+                    fabScrollTop.setVisibility(View.GONE);
+                }
+            }
+        });
     }
 
     private void setupSearch() {
@@ -611,9 +645,9 @@ public class MainActivity extends AppCompatActivity {
                 double lat = location.getLatitude();
                 double lon = location.getLongitude();
                 breweryRepository.fetchBreweriesByLocation(lat, lon, 20);
-                Toast.makeText(this, "Searching nearby breweries...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.toast_searching_nearby, Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(this, "Unable to get location", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.toast_unable_get_location, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -621,7 +655,7 @@ public class MainActivity extends AppCompatActivity {
     private void scanQRCode() {
         ScanOptions options = new ScanOptions();
         options.setDesiredBarcodeFormats(ScanOptions.QR_CODE);
-        options.setPrompt("Scan a brewery QR code");
+        options.setPrompt(getString(R.string.prompt_scan_qr));
         options.setCameraId(0);
         options.setBeepEnabled(true);
         options.setBarcodeImageEnabled(true);
@@ -671,8 +705,12 @@ public class MainActivity extends AppCompatActivity {
     private void createLoyaltyCard(BreweryEntity brewery) {
         loyaltyCardRepository.createLoyaltyCard(currentUserId, brewery.getId(), 100, cardId -> {
             runOnUiThread(() -> {
-                Toast.makeText(this, R.string.toast_loyalty_card_created, Toast.LENGTH_SHORT).show();
-                tabLayout.selectTab(tabLayout.getTabAt(1)); // Switch to My Cards tab
+                if (cardId == -1) {
+                    Toast.makeText(this, R.string.toast_duplicate_card, Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, R.string.toast_loyalty_card_created, Toast.LENGTH_SHORT).show();
+                    tabLayout.selectTab(tabLayout.getTabAt(1)); // Switch to My Cards tab
+                }
             });
         });
     }
@@ -713,13 +751,13 @@ public class MainActivity extends AppCompatActivity {
         new android.app.AlertDialog.Builder(this)
             .setTitle(getString(R.string.dialog_rate_brewery_title) + " — " + brewery.getName())
             .setView(dialogView)
-            .setPositiveButton("Submit", (dialog, which) -> {
+            .setPositiveButton(R.string.dialog_submit, (dialog, which) -> {
                 float rating = ratingBar.getRating();
                 String beerName = beerNameInput.getText().toString().trim();
                 String comment = commentInput.getText().toString().trim();
 
                 if (rating == 0) {
-                    Toast.makeText(this, "Please select a rating", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, R.string.toast_select_rating, Toast.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -758,17 +796,17 @@ public class MainActivity extends AppCompatActivity {
 
     private void deleteCard(LoyaltyCardEntity card) {
         new android.app.AlertDialog.Builder(this)
-            .setTitle("Delete Card")
-            .setMessage("Are you sure you want to delete this loyalty card?")
-            .setPositiveButton("Delete", (dialog, which) -> {
+            .setTitle(R.string.dialog_delete_card_title)
+            .setMessage(R.string.dialog_delete_card_message)
+            .setPositiveButton(R.string.dialog_delete, (dialog, which) -> {
                 loyaltyCardRepository.deleteCard(card.getCardId(), () -> {
                     runOnUiThread(() -> {
-                        Toast.makeText(this, "Card deleted", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.toast_card_deleted, Toast.LENGTH_SHORT).show();
                         loadUserCards(); // Reload cards
                     });
                 });
             })
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.dialog_cancel, null)
             .show();
     }
 
@@ -794,22 +832,58 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
             if (allGranted) {
-                Toast.makeText(this, "Permissions granted", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.toast_permissions_granted, Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(this, "Some permissions denied", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.toast_permissions_denied, Toast.LENGTH_SHORT).show();
             }
         }
     }
 
     private void shareCard(LoyaltyCardEntity card) {
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.setType("text/plain");
-        shareIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_loyalty_card_subject));
-        shareIntent.putExtra(Intent.EXTRA_TEXT,
-            "Check out my loyalty card!\n\n" +
-            "Card ID: " + card.getCardId() + "\n" +
-            "Stamps: " + card.getStamps() + "/" + card.getMaxStamps());
-        startActivity(Intent.createChooser(shareIntent, getString(R.string.share_loyalty_card_chooser)));
+        new Thread(() -> {
+            String breweryName = "Brewery #" + card.getBreweryId();
+            String location = "";
+            try {
+                BreweryEntity brewery = database.AleDAO().getAleByIdSync(card.getBreweryId());
+                if (brewery != null) {
+                    if (brewery.getName() != null) breweryName = brewery.getName();
+                    StringBuilder loc = new StringBuilder();
+                    if (brewery.getCity() != null && !brewery.getCity().isEmpty()) loc.append(brewery.getCity());
+                    if (brewery.getState() != null && !brewery.getState().isEmpty()) {
+                        if (loc.length() > 0) loc.append(", ");
+                        loc.append(brewery.getState());
+                    }
+                    if (brewery.getCountry() != null && !brewery.getCountry().isEmpty()) {
+                        if (loc.length() > 0) loc.append(", ");
+                        loc.append(brewery.getCountry());
+                    }
+                    location = loc.toString();
+                }
+            } catch (Exception ignored) {}
+
+            int discount = LoyaltyCardAdapter.calculateDiscount(card.getStamps());
+            final String finalName = breweryName;
+            final String finalLocation = location;
+
+            runOnUiThread(() -> {
+                StringBuilder shareText = new StringBuilder();
+                shareText.append("Check out my loyalty card!\n\n");
+                shareText.append("🍺 ").append(finalName).append("\n");
+                shareText.append("📊 Stamps: ").append(card.getStamps()).append("/").append(card.getMaxStamps()).append("\n");
+                if (discount > 0) {
+                    shareText.append("🎁 Current Discount: ").append(discount).append("%\n");
+                }
+                if (!finalLocation.isEmpty()) {
+                    shareText.append("📍 ").append(finalLocation).append("\n");
+                }
+
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("text/plain");
+                shareIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_loyalty_card_subject));
+                shareIntent.putExtra(Intent.EXTRA_TEXT, shareText.toString());
+                startActivity(Intent.createChooser(shareIntent, getString(R.string.share_loyalty_card_chooser)));
+            });
+        }).start();
     }
 
     private void showVisitHistory(LoyaltyCardEntity card) {
@@ -890,7 +964,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void openBreweryInMaps(BreweryEntity brewery) {
         if (brewery == null) {
-            Toast.makeText(this, "Brewery information not available", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.toast_brewery_info_unavailable, Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -945,7 +1019,7 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(browserIntent);
                 }
             } else {
-                Toast.makeText(this, "No location information available for this brewery", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.toast_no_location_info, Toast.LENGTH_SHORT).show();
             }
         }
     }

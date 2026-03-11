@@ -36,6 +36,16 @@ public class LoyaltyCardRepository {
     public void createLoyaltyCard(String userId, String breweryId, int maxStamps,
                                   OnCardCreatedListener listener) {
         executorService.execute(() -> {
+            // Check for duplicate card
+            LoyaltyCardEntity existing = loyaltyCardDao.getCardForUserAndBrewerySync(userId, breweryId);
+            if (existing != null) {
+                Log.d(TAG, "Duplicate card prevented for brewery: " + breweryId);
+                if (listener != null) {
+                    listener.onCardCreated(-1); // Signal duplicate
+                }
+                return;
+            }
+
             // Create card (no per-card QR — stamps use brewery stamp QR)
             LoyaltyCardEntity card = new LoyaltyCardEntity(userId, breweryId, maxStamps);
             long cardId = loyaltyCardDao.insert(card);

@@ -220,6 +220,18 @@ public class ProfileActivity extends AppCompatActivity {
             // Clear guest session and go to login
             clearSessionAndGoToLogin();
         });
+
+        // My Reviews
+        findViewById(R.id.myReviewsButton).setOnClickListener(v ->
+                startActivity(new Intent(this, RatingsActivity.class)));
+
+        // Create Business
+        findViewById(R.id.createBusinessButton).setOnClickListener(v ->
+                startActivity(new Intent(this, CreateBusinessActivity.class)));
+
+        // Favorites Map
+        findViewById(R.id.viewFavoritesMapButton).setOnClickListener(v ->
+                createFavoritesMap());
     }
 
     private void loadProfile() {
@@ -313,13 +325,17 @@ public class ProfileActivity extends AppCompatActivity {
         appwriteService.updateName(newName, new AppwriteService.AuthCallback<User<Map<String, Object>>>() {
             @Override
             public void onSuccess(User<Map<String, Object>> user) {
-                // Also update Room
+                // Also update Room - preserve existing data
                 new Thread(() -> {
-                    UserEntity roomUser = new UserEntity();
-                    roomUser.setUserId(currentUserId);
+                    UserEntity roomUser = database.userDAO().getUserByIdSync(currentUserId);
+                    if (roomUser == null) {
+                        roomUser = new UserEntity();
+                        roomUser.setUserId(currentUserId);
+                    }
                     roomUser.setEmail(user.getEmail());
                     roomUser.setDisplayName(user.getName());
                     roomUser.setAuthProvider("email");
+                    // profileImageUrl is preserved from the existing roomUser
                     database.userDAO().insert(roomUser);
 
                     // Also sync updated profile to Appwrite Database
@@ -600,6 +616,74 @@ public class ProfileActivity extends AppCompatActivity {
                         }
                     });
                 }
+            }
+        }).start();
+    }
+
+    /**
+     * Creates a Cartes.io map from the user's favorite breweries.
+     */
+    private void createFavoritesMap() {
+        Toast.makeText(this, R.string.map_creating, Toast.LENGTH_SHORT).show();
+
+        new Thread(() -> {
+            try {
+                java.util.List<BreweryEntity> favorites = database.AleDAO().getFavoritesSync();
+                if (favorites == null || favorites.isEmpty()) {
+                    runOnUiThread(() -> Toast.makeText(this, R.string.map_empty, Toast.LENGTH_SHORT).show());
+                    return;
+                }
+
+                // Create map via Cartes API
+                String userName = appwriteService.getSavedUserName();
+                String mapTitle = (userName != null ? userName : "AleTrail") + "'s Favorites";
+                CartesModels.CreateMapRequest req = new CartesModels.CreateMapRequest(
+                        mapTitle, "My favorite breweries from AleTrail");
+
+                retrofit2.Response<CartesModels.MapResponse> mapResponse =
+                        RetrofitClient.getCartesAPI().createMap(req).execute();
+
+                if (!mapResponse.isSuccessful() || mapResponse.body() == null) {
+                    runOnUiThread(() -> Toast.makeText(this,
+                            getString(R.string.map_error, "Failed to create map"),
+                            Toast.LENGTH_SHORT).show());
+                    return;
+                }
+
+                String mapToken = mapResponse.body().getToken();
+                int addedCount = 0;
+
+                // Add markers for each favorite
+                for (BreweryEntity brewery : favorites) {
+                    if (brewery.getLatitude() != null && brewery.getLongitude() != null) {
+                        double[] coords = {brewery.getLongitude(), brewery.getLatitude()};
+                        String desc = brewery.getName() != null ? brewery.getName() : "Brewery";
+                        CartesModels.CreateMarkerRequest marker =
+                                new CartesModels.CreateMarkerRequest("brewery", coords, desc);
+                        try {
+                            RetrofitClient.getCartesAPI().createMarker(mapToken, marker).execute();
+                            addedCount++;
+                        } catch (Exception e) {
+                            Log.e("ProfileActivity", "Failed to add marker: " + e.getMessage());
+                        }
+                    }
+                }
+
+                final int count = addedCount;
+                final String token = mapToken;
+                runOnUiThread(() -> {
+                    Toast.makeText(this, getString(R.string.map_created, count), Toast.LENGTH_SHORT).show();
+                    // Open map in browser
+                    String url = "https://app.cartes.io/maps/" + token;
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    startActivity(browserIntent);
+                });
+
+            } catch (Exception e) {
+                Log.e("ProfileActivity", "Error creating favorites map: " + e.getMessage());
+                runOnUiThread(() -> Toast.makeText(this,
+                        getString(R.string.map_error, e.getMessage()),
+                        Toast.LENGTH_SHORT).show());
             }
         }).start();
     }

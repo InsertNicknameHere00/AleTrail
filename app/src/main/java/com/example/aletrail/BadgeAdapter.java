@@ -50,7 +50,15 @@ public class BadgeAdapter extends RecyclerView.Adapter<BadgeAdapter.BadgeViewHol
     }
 
     public void setBadges(List<BadgeEntity> newBadges) {
-        final List<BadgeEntity> finalNewBadges = (newBadges == null) ? new ArrayList<>() : newBadges;
+        List<BadgeEntity> sorted = (newBadges == null) ? new ArrayList<>() : new ArrayList<>(newBadges);
+        // Sort: earned badges first (by earned timestamp desc), then unearned (by required count asc)
+        sorted.sort((a, b) -> {
+            if (a.isEarned() && !b.isEarned()) return -1;
+            if (!a.isEarned() && b.isEarned()) return 1;
+            if (a.isEarned() && b.isEarned()) return Long.compare(b.getEarnedTimestamp(), a.getEarnedTimestamp());
+            return Integer.compare(a.getRequiredCount(), b.getRequiredCount());
+        });
+        final List<BadgeEntity> finalNewBadges = sorted;
 
         DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
             @Override
