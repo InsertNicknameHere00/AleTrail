@@ -42,4 +42,10 @@ public interface VisitDAO {
 
     @Query("DELETE FROM visit_table WHERE userId = :userId")
     void deleteByUserId(String userId);
+
+    @Query("SELECT MAX(cnt) FROM (SELECT COUNT(*) as cnt FROM visit_table WHERE userId = :userId GROUP BY breweryId)")
+    int getMaxVisitsToSingleBrewerySync(String userId);
+
+    @Query("SELECT COUNT(*) FROM visit_table WHERE userId = :userId")
+    int getTotalVisitCountSync(String userId);
 }

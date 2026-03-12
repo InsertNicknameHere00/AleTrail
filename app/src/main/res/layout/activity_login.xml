@@ -185,6 +185,18 @@
             android:textSize="14sp"
             android:padding="12dp" />
 
+        <!-- Register Business (before logging in) -->
+        <TextView
+            android:id="@+id/registerBusinessButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/login_register_business"
+            android:textColor="#FFD54F"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:padding="12dp" />
+
         <!-- Spacer -->
         <View
             android:layout_width="match_parent"

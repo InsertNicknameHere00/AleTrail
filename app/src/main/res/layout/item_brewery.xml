@@ -185,7 +185,21 @@
                 android:layout_height="42dp"
                 android:layout_weight="1"
                 android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
                 android:text="@string/button_qr_code"
+                android:textColor="?attr/aleButtonText"
+                android:textSize="11sp"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:background="@drawable/bg_button_primary" />
+
+            <Button
+                android:id="@+id/viewReviewsButton"
+                android:layout_width="0dp"
+                android:layout_height="42dp"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="@string/button_view_reviews"
                 android:textColor="?attr/aleButtonText"
                 android:textSize="11sp"
                 android:textAllCaps="false"

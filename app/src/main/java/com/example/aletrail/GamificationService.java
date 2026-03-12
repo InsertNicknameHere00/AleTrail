@@ -226,13 +226,69 @@ public class GamificationService {
     }
 
     /**
-     * Проверява badge за рейтинги
+     * Checks badge for ratings — called after submitting a rating.
      */
     public void checkRatingBadges(String userId, int totalRatings) {
         executorService.execute(() -> {
+            // Rating count badges
+            checkBadge(userId, BADGE_TRAILBLAZER, totalRatings, 1);
             checkBadge(userId, BADGE_CRITIC, totalRatings, 5);
+            checkBadge(userId, BADGE_TASTE_TESTER, totalRatings, 10);
             checkBadge(userId, BADGE_BEER_CONNOISSEUR, totalRatings, 20);
+            checkBadge(userId, BADGE_DATA_NERD, totalRatings, 30);
             checkBadge(userId, BADGE_MASTER_CRITIC, totalRatings, 50);
+
+            // Five-star rating badges
+            try {
+                int fiveStarCount = database.beerRatingDAO().getFiveStarRatingCountSync(userId);
+                checkBadge(userId, BADGE_SWEET_TOOTH, fiveStarCount, 3);
+                checkBadge(userId, BADGE_FIVE_STAR, fiveStarCount, 5);
+            } catch (Exception e) {
+                Log.e(TAG, "Error checking five-star badges: " + e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Checks loyalty card related badges — call after card creation or stamp.
+     */
+    public void checkCardBadges(String userId) {
+        executorService.execute(() -> {
+            try {
+                int totalCards = database.loyaltyCardDAO().getTotalCardCountSync(userId);
+                checkBadge(userId, BADGE_SUPPORTER, totalCards, 5);
+
+                int completedCards = database.loyaltyCardDAO().getCompletedCardsCountSync(userId);
+                checkBadge(userId, BADGE_LOYALTY_MASTER, completedCards, 3);
+            } catch (Exception e) {
+                Log.e(TAG, "Error checking card badges: " + e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Checks sharing badge — call after sharing a loyalty card.
+     */
+    public void checkSharingBadges(String userId) {
+        executorService.execute(() -> {
+            // Party Starter: share at least 1 card (we unlock on first share)
+            unlockBadgeByType(userId, BADGE_PARTY_STARTER);
+        });
+    }
+
+    /**
+     * Checks visit-related badges (homebody, etc.) — call after a new visit/stamp.
+     */
+    public void checkVisitBadges(String userId) {
+        executorService.execute(() -> {
+            try {
+                // Homebody: visit same brewery 5+ times
+                int maxVisits = database.visitDAO().getMaxVisitsToSingleBrewerySync(userId);
+                checkBadge(userId, BADGE_HOMEBODY, maxVisits, 5);
+                checkBadge(userId, BADGE_DEDICATION, maxVisits, 10);
+            } catch (Exception e) {
+                Log.e(TAG, "Error checking visit badges: " + e.getMessage());
+            }
         });
     }
 }

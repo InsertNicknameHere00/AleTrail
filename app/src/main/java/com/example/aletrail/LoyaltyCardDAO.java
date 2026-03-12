@@ -44,4 +44,10 @@ public interface LoyaltyCardDAO {
 
     @Query("DELETE FROM loyalty_card_table WHERE userId = :userId")
     void deleteByUserId(String userId);
+
+    @Query("SELECT COUNT(*) FROM loyalty_card_table WHERE userId = :userId")
+    int getTotalCardCountSync(String userId);
+
+    @Query("SELECT COUNT(*) FROM loyalty_card_table WHERE userId = :userId AND stamps >= maxStamps")
+    int getCompletedCardsCountSync(String userId);
 }

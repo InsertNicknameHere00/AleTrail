@@ -92,6 +92,11 @@ public class LoginActivity extends AppCompatActivity {
         toggleAuthMode.setOnClickListener(v -> toggleMode());
 
         skipLogin.setOnClickListener(v -> continueAsGuest());
+
+        // Register Business (accessible before logging in)
+        findViewById(R.id.registerBusinessButton).setOnClickListener(v -> {
+            startActivity(new Intent(this, CreateBusinessActivity.class));
+        });
     }
 
     private void toggleMode() {

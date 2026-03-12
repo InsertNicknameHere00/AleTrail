@@ -1,5 +1,7 @@
 package com.example.aletrail;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -39,9 +41,11 @@ public class RetrofitClient {
                     .addInterceptor(logging)
                     .build();
 
+            Gson lenientGson = new GsonBuilder().setLenient().create();
+
             cartesRetrofit = new Retrofit.Builder()
                     .baseUrl(CARTES_BASE_URL)
-                    .addConverterFactory(GsonConverterFactory.create())
+                    .addConverterFactory(GsonConverterFactory.create(lenientGson))
                     .client(client)
                     .build();
         }

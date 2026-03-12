@@ -27,6 +27,7 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
         void onCreateCardClick(BreweryEntity brewery);
         void onBreweryLongPress(BreweryEntity brewery);
         void onRateClick(BreweryEntity brewery);
+        void onViewReviewsClick(BreweryEntity brewery);
     }
 
     public BreweryAdapter(OnBreweryClickListener listener) {
@@ -102,6 +103,7 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
         private Button removeFavoriteButton;
         private Button rateButton;
         private Button qrCodeButton;
+        private Button viewReviewsButton;
         private ImageView breweryIcon;
 
         public BreweryViewHolder(@NonNull View itemView) {
@@ -116,6 +118,7 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
             removeFavoriteButton = itemView.findViewById(R.id.removeFavoriteButton);
             rateButton = itemView.findViewById(R.id.rateButton);
             qrCodeButton = itemView.findViewById(R.id.qrCodeButton);
+            viewReviewsButton = itemView.findViewById(R.id.viewReviewsButton);
             breweryIcon = itemView.findViewById(R.id.breweryIcon);
         }
 
@@ -213,6 +216,11 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
             // QR button — same as long press
             qrCodeButton.setOnClickListener(v -> {
                 if (listener != null) listener.onBreweryLongPress(brewery);
+            });
+
+            // View Reviews button
+            viewReviewsButton.setOnClickListener(v -> {
+                if (listener != null) listener.onViewReviewsClick(brewery);
             });
 
             // Long press to show brewery stamp QR code

@@ -35,6 +35,9 @@ public interface BeerRatingDAO {
     @Query("SELECT COUNT(*) FROM beer_rating_table WHERE userId = :userId")
     int getTotalRatingCountSync(String userId);
 
+    @Query("SELECT COUNT(*) FROM beer_rating_table WHERE userId = :userId AND rating >= 5.0")
+    int getFiveStarRatingCountSync(String userId);
+
     @Query("DELETE FROM beer_rating_table WHERE userId = :userId")
     void deleteByUserId(String userId);
 }

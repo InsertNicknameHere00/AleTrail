@@ -71,7 +71,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:text="?"
+                    android:text="@string/avatar_placeholder"
                     android:textColor="#FFD54F"
                     android:textSize="48sp"
                     android:textStyle="bold" />
@@ -400,6 +400,19 @@
                         android:background="@drawable/bg_button_primary" />
                 </LinearLayout>
 
+                <!-- Delete Account (inside settings) -->
+                <Button
+                    android:id="@+id/deleteAccountButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/btn_delete_account"
+                    android:textColor="#FF1744"
+                    android:textSize="14sp"
+                    android:textAllCaps="false"
+                    android:textStyle="bold"
+                    android:background="@drawable/bg_brewery_item" />
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -468,22 +481,9 @@
             android:id="@+id/signOutButton"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="24dp"
             android:text="@string/btn_sign_out"
             android:textColor="#FF5252"
-            android:textSize="16sp"
-            android:textAllCaps="false"
-            android:textStyle="bold"
-            android:background="@drawable/bg_brewery_item" />
-
-        <!-- Delete Account Button -->
-        <Button
-            android:id="@+id/deleteAccountButton"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginBottom="24dp"
-            android:text="@string/btn_delete_account"
-            android:textColor="#FF1744"
             android:textSize="16sp"
             android:textAllCaps="false"
             android:textStyle="bold"

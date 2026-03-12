@@ -7,6 +7,7 @@
     <string name="stats_visits">Visits</string>
     <string name="stats_badges">Badges</string>
     <string name="stat_zero">0</string>
+    <string name="avatar_placeholder">?</string>
 
     <string name="search_hint">Search breweries...</string>
     <string name="filter_title">🔍 Filter Breweries</string>
@@ -116,6 +117,10 @@
     <string name="appwrite_project_id">699f35060010dd99484e</string>
     <string name="appwrite_project_name">The AleTrail</string>
     <string name="appwrite_endpoint">https://fra.cloud.appwrite.io/v1</string>
+    <!-- IMPORTANT: Update this URL to where you host docs/verify.html via GitHub Pages.
+         Example: https://yourusername.github.io/AleTrail/verify.html
+         The page redirects to aletrail://verify?userId=...&secret=... which the app handles. -->
+    <string name="appwrite_verify_url">https://fra.cloud.appwrite.io/v1/account</string>
     <string name="appwrite_database_id">699f4f9c00275039a68b</string>
 
     <!-- Login / Sign Up -->
@@ -136,6 +141,7 @@
     <string name="login_success">Welcome! 🍻</string>
     <string name="signup_success">Account created! 🎉</string>
     <string name="btn_skip_login">Continue as Guest</string>
+    <string name="login_register_business">🏭 Register Your Business</string>
 
     <!-- Profile -->
     <string name="profile_title">My Profile 👤</string>
@@ -230,4 +236,11 @@
 
     <!-- Scroll to top -->
     <string name="action_scroll_top">Scroll to top</string>
+
+    <!-- Brewery Reviews -->
+    <string name="brewery_reviews_title">Reviews — %1$s</string>
+    <string name="brewery_reviews_title_default">Brewery Reviews</string>
+    <string name="brewery_reviews_empty">No reviews yet for this brewery</string>
+    <string name="brewery_avg_rating">Average: %.1f ⭐</string>
+    <string name="button_view_reviews">📋 Reviews</string>
 </resources>

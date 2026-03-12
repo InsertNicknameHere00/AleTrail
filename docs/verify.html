@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>AleTrail - Email Verification</title>
+    <style>
+        body { font-family: sans-serif; background: #1a1a2e; color: #e0e0e0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: #16213e; padding: 40px; border-radius: 16px; text-align: center; max-width: 400px; }
+        h1 { color: #FFD54F; }
+        a { color: #FFD54F; text-decoration: none; padding: 12px 24px; border: 2px solid #FFD54F; border-radius: 8px; display: inline-block; margin-top: 20px; }
+        a:hover { background: #FFD54F; color: #1a1a2e; }
+        .info { color: #90CAF9; font-size: 14px; margin-top: 16px; }
+    </style>
+    <script>
+        // Extract userId and secret from URL params
+        const params = new URLSearchParams(window.location.search);
+        const userId = params.get('userId');
+        const secret = params.get('secret');
+
+        if (userId && secret) {
+            // Try to redirect to the AleTrail app deep link
+            const deepLink = 'aletrail://verify?userId=' + encodeURIComponent(userId) + '&secret=' + encodeURIComponent(secret);
+            window.location.href = deepLink;
+        }
+    </script>
+</head>
+<body>
+    <div class="card">
+        <h1>🍺 AleTrail</h1>
+        <p>Email Verification</p>
+        <script>
+            const params = new URLSearchParams(window.location.search);
+            const userId = params.get('userId');
+            const secret = params.get('secret');
+            if (userId && secret) {
+                const deepLink = 'aletrail://verify?userId=' + encodeURIComponent(userId) + '&secret=' + encodeURIComponent(secret);
+                document.write('<p>If the app didn\'t open automatically:</p>');
+                document.write('<a href="' + deepLink + '">Open in AleTrail App</a>');
+                document.write('<p class="info">This will complete your email verification.</p>');
+            } else {
+                document.write('<p>Invalid verification link. Please try again from the app.</p>');
+            }
+        </script>
+    </div>
+</body>
+</html>
+

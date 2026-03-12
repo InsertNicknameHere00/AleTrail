@@ -174,8 +174,20 @@ public class MainActivity extends AppCompatActivity {
         com.google.android.material.appbar.MaterialToolbar toolbar = findViewById(R.id.toolbar);
         toolbar.inflateMenu(R.menu.menu_main);
         toolbar.setOnMenuItemClickListener(item -> {
-            if (item.getItemId() == R.id.action_profile) {
+            int id = item.getItemId();
+            if (id == R.id.action_profile) {
                 startActivity(new Intent(this, ProfileActivity.class));
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+                return true;
+            } else if (id == R.id.action_reviews) {
+                startActivity(new Intent(this, RatingsActivity.class));
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+                return true;
+            } else if (id == R.id.action_favorites_map) {
+                createFavoritesMap();
+                return true;
+            } else if (id == R.id.action_create_business) {
+                startActivity(new Intent(this, CreateBusinessActivity.class));
                 overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                 return true;
             }
@@ -260,6 +272,11 @@ public class MainActivity extends AppCompatActivity {
             public void onRateClick(BreweryEntity brewery) {
                 showRateBreweryDialog(brewery);
             }
+
+            @Override
+            public void onViewReviewsClick(BreweryEntity brewery) {
+                openBreweryReviews(brewery);
+            }
         });
 
         // Setup Favorites Adapter (same listener)
@@ -308,6 +325,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onRateClick(BreweryEntity brewery) {
                 showRateBreweryDialog(brewery);
+            }
+
+            @Override
+            public void onViewReviewsClick(BreweryEntity brewery) {
+                openBreweryReviews(brewery);
             }
         }, true); // Pass true to show the remove button
 
@@ -575,6 +597,20 @@ public class MainActivity extends AppCompatActivity {
                     statsUserName.setText(R.string.stats_title);
                     statsAvatarInitial.setText("?");
                 }
+
+                // Load profile image if available
+                String imageUrl = user.getProfileImageUrl();
+                if (imageUrl != null && !imageUrl.isEmpty()) {
+                    statsAvatarImage.setVisibility(View.VISIBLE);
+                    statsAvatarInitial.setVisibility(View.GONE);
+                    com.bumptech.glide.Glide.with(MainActivity.this)
+                            .load(android.net.Uri.parse(imageUrl))
+                            .transform(new com.bumptech.glide.load.resource.bitmap.CircleCrop())
+                            .into(statsAvatarImage);
+                } else {
+                    statsAvatarImage.setVisibility(View.GONE);
+                    statsAvatarInitial.setVisibility(View.VISIBLE);
+                }
             }
         });
 
@@ -710,6 +746,7 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(this, R.string.toast_loyalty_card_created, Toast.LENGTH_SHORT).show();
                     tabLayout.selectTab(tabLayout.getTabAt(1)); // Switch to My Cards tab
+                    gamificationService.checkCardBadges(currentUserId);
                 }
             });
         });
@@ -786,6 +823,7 @@ public class MainActivity extends AppCompatActivity {
                     // Check rating badges
                     int totalRatings = database.beerRatingDAO().getTotalRatingCountSync(currentUserId);
                     gamificationService.checkRatingBadges(currentUserId, totalRatings);
+                    gamificationService.checkVisitBadges(currentUserId);
 
                     runOnUiThread(() -> Toast.makeText(this, R.string.toast_rating_saved, Toast.LENGTH_SHORT).show());
                 }).start();
@@ -882,6 +920,9 @@ public class MainActivity extends AppCompatActivity {
                 shareIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.share_loyalty_card_subject));
                 shareIntent.putExtra(Intent.EXTRA_TEXT, shareText.toString());
                 startActivity(Intent.createChooser(shareIntent, getString(R.string.share_loyalty_card_chooser)));
+
+                // Check sharing badges (Party Starter)
+                gamificationService.checkSharingBadges(currentUserId);
             });
         }).start();
     }
@@ -890,6 +931,17 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, VisitHistoryActivity.class);
         intent.putExtra("cardId", card.getCardId());
         intent.putExtra("breweryId", card.getBreweryId());
+        startActivity(intent);
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+    }
+
+    /**
+     * Opens the reviews screen for a specific brewery.
+     */
+    private void openBreweryReviews(BreweryEntity brewery) {
+        Intent intent = new Intent(this, BreweryReviewsActivity.class);
+        intent.putExtra("breweryId", brewery.getId());
+        intent.putExtra("breweryName", brewery.getName());
         startActivity(intent);
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
     }
@@ -1022,5 +1074,69 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, R.string.toast_no_location_info, Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    /**
+     * Creates a Cartes.io map from the user's favorite breweries.
+     */
+    private void createFavoritesMap() {
+        Toast.makeText(this, R.string.map_creating, Toast.LENGTH_SHORT).show();
+
+        new Thread(() -> {
+            try {
+                java.util.List<BreweryEntity> favorites = database.AleDAO().getFavoritesSync();
+                if (favorites == null || favorites.isEmpty()) {
+                    runOnUiThread(() -> Toast.makeText(this, R.string.map_empty, Toast.LENGTH_SHORT).show());
+                    return;
+                }
+
+                String userName = appwriteService.getSavedUserName();
+                String mapTitle = (userName != null ? userName : "AleTrail") + "'s Favorites";
+                CartesModels.CreateMapRequest req = new CartesModels.CreateMapRequest(
+                        mapTitle, "My favorite breweries from AleTrail");
+
+                retrofit2.Response<CartesModels.MapResponse> mapResponse =
+                        RetrofitClient.getCartesAPI().createMap(req).execute();
+
+                if (!mapResponse.isSuccessful() || mapResponse.body() == null) {
+                    String errBody = mapResponse.errorBody() != null ? mapResponse.errorBody().string() : "Unknown error";
+                    runOnUiThread(() -> Toast.makeText(this,
+                            getString(R.string.map_error, errBody), Toast.LENGTH_LONG).show());
+                    return;
+                }
+
+                String mapToken = mapResponse.body().getToken();
+                int addedCount = 0;
+
+                for (BreweryEntity brewery : favorites) {
+                    if (brewery.getLatitude() != null && brewery.getLongitude() != null) {
+                        double[] coords = {brewery.getLongitude(), brewery.getLatitude()};
+                        String desc = brewery.getName() != null ? brewery.getName() : "Brewery";
+                        CartesModels.CreateMarkerRequest marker =
+                                new CartesModels.CreateMarkerRequest("brewery", coords, desc);
+                        try {
+                            RetrofitClient.getCartesAPI().createMarker(mapToken, marker).execute();
+                            addedCount++;
+                        } catch (Exception e) {
+                            android.util.Log.e("MainActivity", "Failed to add marker: " + e.getMessage());
+                        }
+                    }
+                }
+
+                final int count = addedCount;
+                final String token = mapToken;
+                runOnUiThread(() -> {
+                    Toast.makeText(this, getString(R.string.map_created, count), Toast.LENGTH_SHORT).show();
+                    String url = "https://app.cartes.io/maps/" + token;
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url));
+                    startActivity(browserIntent);
+                });
+
+            } catch (Exception e) {
+                android.util.Log.e("MainActivity", "Error creating favorites map: " + e.getMessage());
+                runOnUiThread(() -> Toast.makeText(this,
+                        getString(R.string.map_error, e.getMessage()), Toast.LENGTH_LONG).show());
+            }
+        }).start();
     }
 }

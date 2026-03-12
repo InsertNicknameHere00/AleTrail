@@ -132,6 +132,9 @@ public class LoyaltyCardRepository {
                     user.getTotalVisits(),
                     uniqueBreweries);
         }
+        // Check visit-based and card-based badges
+        gamificationService.checkVisitBadges(userId);
+        gamificationService.checkCardBadges(userId);
     }
 
     /**

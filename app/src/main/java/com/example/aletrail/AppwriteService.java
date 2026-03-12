@@ -44,6 +44,7 @@ public class AppwriteService {
     private final SharedPreferences prefs;
     private final ExecutorService executor;
     private final String databaseId;
+    private final String verifyUrl;
 
     private AppwriteService(Context context) {
         Client client = AppwriteClientProvider.getClient(context);
@@ -53,6 +54,7 @@ public class AppwriteService {
                 .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         this.executor = Executors.newFixedThreadPool(3);
         this.databaseId = context.getString(R.string.appwrite_database_id);
+        this.verifyUrl = context.getString(R.string.appwrite_verify_url);
     }
 
     public static AppwriteService getInstance(Context context) {
@@ -66,7 +68,6 @@ public class AppwriteService {
         return instance;
     }
 
-    // â”€â”€â”€ Callback interfaces â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public interface AuthCallback<T> {
         void onSuccess(T result);
@@ -88,7 +89,6 @@ public class AppwriteService {
         void onError(String message);
     }
 
-    // â”€â”€â”€ Auth Methods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @SuppressWarnings("unchecked")
     public void createAccount(String email, String password, String name,
@@ -229,7 +229,24 @@ public class AppwriteService {
                     deleteAllUserDocuments(userId);
                 }
 
-                // Step 2: Delete the session (log out)
+                // Step 2: Block/disable the account via updateStatus()
+                try {
+                    BuildersKt.runBlocking(
+                            EmptyCoroutineContext.INSTANCE,
+                            (scope, cont) -> {
+                                try {
+                                    return account.updateStatus(cont);
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                    );
+                    Log.d(TAG, "Account status updated (blocked)");
+                } catch (Exception e) {
+                    Log.w(TAG, "updateStatus during account deletion: " + e.getMessage());
+                }
+
+                // Step 3: Delete the session (log out)
                 try {
                     BuildersKt.runBlocking(
                             EmptyCoroutineContext.INSTANCE,
@@ -346,8 +363,6 @@ public class AppwriteService {
         }
     }
 
-    // â”€â”€â”€ Session helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
     public boolean isLoggedInLocally() {
         return prefs.getBoolean(KEY_IS_LOGGED_IN, false);
     }
@@ -405,7 +420,6 @@ public class AppwriteService {
         }
     }
 
-    // â”€â”€â”€ Database generic methods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public void createDocument(String collectionId, Map<String, Object> data,
                                DocumentCallback callback) {
@@ -551,7 +565,6 @@ public class AppwriteService {
         });
     }
 
-    // â”€â”€â”€ Entity-specific sync helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     public void syncVisit(VisitEntity visit, SimpleCallback callback) {
         Map<String, Object> data = new HashMap<>();
@@ -688,7 +701,9 @@ public class AppwriteService {
                     }
                     @Override
                     public void onError(String msg) {
-                        Log.e(TAG, "Badge sync failed: " + msg);
+                        Log.e(TAG, "Badge sync FAILED for " + badge.getBadgeType()
+                                + " (docId=" + finalDocId + "): " + msg
+                                + " | dataKeys=" + data.keySet());
                         if (callback != null) callback.onError(msg);
                     }
                 });
@@ -765,7 +780,7 @@ public class AppwriteService {
         String userId = getSavedUserId();
         if (userId != null && !userId.startsWith("guest_")) {
             String userRole = "user:" + userId;
-            // Appwrite v1.4+ permissions: read, update, delete, create â€” NOT "write"
+            // Appwrite v1.4+ permissions: read, update, delete, create ” NOT "write"
             return Arrays.asList(
                     "read(\"" + userRole + "\")",
                     "update(\"" + userRole + "\")",
@@ -841,6 +856,19 @@ public class AppwriteService {
 
     /**
      * Sends a verification email to the current user.
+     *
+     * The URL passed to createVerification MUST be a valid HTTPS URL.
+     * Appwrite appends ?userId=...&secret=... to it.
+     *
+     * For full verification flow:
+     * 1. Host docs/verify.html on GitHub Pages (or any HTTPS host)
+     * 2. Update appwrite_verify_url in strings.xml to that HTTPS URL
+     * 3. The page redirects to aletrail://verify?userId=...&secret=...
+     * 4. The app's deep link handler calls completeEmailVerification()
+     *
+     * Current fallback: uses Appwrite endpoint URL — email IS sent,
+     * but clicking the link won't auto-verify (shows JSON instead).
+     * User can check status manually in-app.
      */
     public void sendVerificationEmail(SimpleCallback callback) {
         executor.execute(() -> {
@@ -849,7 +877,7 @@ public class AppwriteService {
                     EmptyCoroutineContext.INSTANCE,
                     (scope, cont) -> {
                         try {
-                            return account.createVerification("https://fra.cloud.appwrite.io/v1/account/verification", cont);
+                            return account.createVerification(verifyUrl, cont);
                         } catch (Exception e) {
                             throw new RuntimeException(e);
                         }
