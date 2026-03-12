@@ -117,10 +117,7 @@
     <string name="appwrite_project_id">699f35060010dd99484e</string>
     <string name="appwrite_project_name">The AleTrail</string>
     <string name="appwrite_endpoint">https://fra.cloud.appwrite.io/v1</string>
-    <!-- IMPORTANT: Update this URL to where you host docs/verify.html via GitHub Pages.
-         Example: https://yourusername.github.io/AleTrail/verify.html
-         The page redirects to aletrail://verify?userId=...&secret=... which the app handles. -->
-    <string name="appwrite_verify_url">https://fra.cloud.appwrite.io/v1/account</string>
+    <string name="appwrite_verify_url">https://insertnicknamehere00.github.io/AleTrail/verify.html</string>
     <string name="appwrite_database_id">699f4f9c00275039a68b</string>
 
     <!-- Login / Sign Up -->
