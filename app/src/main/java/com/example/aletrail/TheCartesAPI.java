@@ -14,6 +14,7 @@ import com.example.aletrail.CartesModels.UpdateMapRequest;
 import com.example.aletrail.CartesModels.MarkerListResponse;
 import com.example.aletrail.CartesModels.MarkerResponse;
 import com.example.aletrail.CartesModels.CreateMarkerRequest;
+import okhttp3.ResponseBody;
 
 
 public interface TheCartesAPI {
@@ -26,7 +27,7 @@ public interface TheCartesAPI {
     Call<MapResponse> getMap(@Path("token") String token);
 
     @POST("maps")
-    Call<MapResponse> createMap(@Body CreateMapRequest mapRequest);
+    Call<ResponseBody> createMap(@Body CreateMapRequest mapRequest);
 
     @PATCH("maps/{token}")
     Call<MapResponse> updateMap(@Path("token") String token, @Body UpdateMapRequest mapRequest);
@@ -36,7 +37,7 @@ public interface TheCartesAPI {
     Call<MarkerListResponse> getMapMarkers(@Path("token") String token);
 
     @POST("maps/{token}/markers")
-    Call<MarkerResponse> createMarker(@Path("token") String token, @Body CreateMarkerRequest markerRequest);
+    Call<ResponseBody> createMarker(@Path("token") String token, @Body CreateMarkerRequest markerRequest);
 
     @DELETE("maps/{token}/markers/{id}")
     Call<Void> deleteMarker(@Path("token") String token, @Path("id") String id);

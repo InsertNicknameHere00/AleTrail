@@ -3,8 +3,6 @@ package com.example.aletrail;
 import java.util.List;
 import java.util.Map;
 
-// All models in one file for simplicity
-
 public class CartesModels {
 
     // MapResponse model
@@ -19,17 +17,14 @@ public class CartesModels {
         private String createdAt;
         private String updatedAt;
 
-        // Getters and setters
         public String getToken() { return token; }
         public void setToken(String token) { this.token = token; }
-
+        public String getUuid() { return uuid; }
+        public void setUuid(String uuid) { this.uuid = uuid; }
         public String getTitle() { return title; }
         public void setTitle(String title) { this.title = title; }
-
         public String getDescription() { return description; }
         public void setDescription(String description) { this.description = description; }
-
-        // Add remaining getters/setters as needed
     }
 
     // MapListResponse model
@@ -104,27 +99,33 @@ public class CartesModels {
 
     // CreateMarkerRequest model
     public static class CreateMarkerRequest {
-        private String category;
-        private double[] coordinates;
-        private Map<String, Object> data;
+        private String map_token;
+        private double lat;
+        private double lng;
+        private String category_name;
         private String description;
 
-        public CreateMarkerRequest(String category, double[] coordinates, String description) {
-            this.category = category;
-            this.coordinates = coordinates;
+        public CreateMarkerRequest(String mapToken, double lat, double lng, String categoryName, String description) {
+            this.map_token = mapToken;
+            this.lat = lat;
+            this.lng = lng;
+            this.category_name = categoryName;
             this.description = description;
         }
 
-        public String getCategory() { return category; }
-        public void setCategory(String category) { this.category = category; }
+        public String getMap_token() { return map_token; }
+        public void setMap_token(String map_token) { this.map_token = map_token; }
 
-        public double[] getCoordinates() { return coordinates; }
-        public void setCoordinates(double[] coordinates) { this.coordinates = coordinates; }
+        public double getLat() { return lat; }
+        public void setLat(double lat) { this.lat = lat; }
+
+        public double getLng() { return lng; }
+        public void setLng(double lng) { this.lng = lng; }
+
+        public String getCategory_name() { return category_name; }
+        public void setCategory_name(String category_name) { this.category_name = category_name; }
 
         public String getDescription() { return description; }
         public void setDescription(String description) { this.description = description; }
-
-        public Map<String, Object> getData() { return data; }
-        public void setData(Map<String, Object> data) { this.data = data; }
     }
 }

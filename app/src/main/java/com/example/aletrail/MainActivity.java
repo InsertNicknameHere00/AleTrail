@@ -1095,28 +1095,82 @@ public class MainActivity extends AppCompatActivity {
                 CartesModels.CreateMapRequest req = new CartesModels.CreateMapRequest(
                         mapTitle, "My favorite breweries from AleTrail");
 
-                retrofit2.Response<CartesModels.MapResponse> mapResponse =
+                retrofit2.Response<okhttp3.ResponseBody> mapResponse =
                         RetrofitClient.getCartesAPI().createMap(req).execute();
 
                 if (!mapResponse.isSuccessful() || mapResponse.body() == null) {
-                    String errBody = mapResponse.errorBody() != null ? mapResponse.errorBody().string() : "Unknown error";
+                    String errBody;
+                    try (okhttp3.ResponseBody errorBody = mapResponse.errorBody()) {
+                        errBody = errorBody != null ? errorBody.string() : "Unknown error";
+                    }
                     runOnUiThread(() -> Toast.makeText(this,
                             getString(R.string.map_error, errBody), Toast.LENGTH_LONG).show());
                     return;
                 }
 
-                String mapToken = mapResponse.body().getToken();
+                String rawBody;
+                try (okhttp3.ResponseBody body = mapResponse.body()) {
+                    rawBody = body != null ? body.string() : "";
+                }
+
+                String mapToken = null;
+                String mapUuid = null;
+                try {
+                    com.google.gson.JsonElement parsed = com.google.gson.JsonParser.parseString(rawBody);
+                    if (parsed.isJsonObject()) {
+                        com.google.gson.JsonObject json = parsed.getAsJsonObject();
+                        if (json.has("token") && !json.get("token").isJsonNull()) {
+                            mapToken = json.get("token").getAsString();
+                        }
+                        if (json.has("uuid") && !json.get("uuid").isJsonNull()) {
+                            mapUuid = json.get("uuid").getAsString();
+                        }
+                    } else if (parsed.isJsonPrimitive() && parsed.getAsJsonPrimitive().isString()) {
+                        // Some error responses can be plain JSON strings.
+                        String msg = parsed.getAsString();
+                        final String finalMsg = msg;
+                        runOnUiThread(() -> Toast.makeText(this,
+                                getString(R.string.map_error, finalMsg), Toast.LENGTH_LONG).show());
+                        return;
+                    }
+                } catch (Exception parseException) {
+                    final String parseErr = rawBody != null && !rawBody.isEmpty() ? rawBody : parseException.getMessage();
+                    runOnUiThread(() -> Toast.makeText(this,
+                            getString(R.string.map_error, parseErr), Toast.LENGTH_LONG).show());
+                    return;
+                }
+
+                if (mapToken == null || mapToken.trim().isEmpty() || mapUuid == null || mapUuid.trim().isEmpty()) {
+                    runOnUiThread(() -> Toast.makeText(this,
+                            getString(R.string.map_error, "Map token/uuid missing in Cartes response"),
+                            Toast.LENGTH_LONG).show());
+                    return;
+                }
+
                 int addedCount = 0;
 
                 for (BreweryEntity brewery : favorites) {
                     if (brewery.getLatitude() != null && brewery.getLongitude() != null) {
-                        double[] coords = {brewery.getLongitude(), brewery.getLatitude()};
                         String desc = brewery.getName() != null ? brewery.getName() : "Brewery";
                         CartesModels.CreateMarkerRequest marker =
-                                new CartesModels.CreateMarkerRequest("brewery", coords, desc);
+                                new CartesModels.CreateMarkerRequest(
+                                        mapToken,
+                                        brewery.getLatitude(),
+                                        brewery.getLongitude(),
+                                        "Brewery",
+                                        desc);
                         try {
-                            RetrofitClient.getCartesAPI().createMarker(mapToken, marker).execute();
-                            addedCount++;
+                            retrofit2.Response<okhttp3.ResponseBody> markerResp =
+                                    RetrofitClient.getCartesAPI().createMarker(mapUuid, marker).execute();
+                            if (markerResp.isSuccessful()) {
+                                addedCount++;
+                            } else {
+                                String markerErr;
+                                try (okhttp3.ResponseBody eb = markerResp.errorBody()) {
+                                    markerErr = eb != null ? eb.string() : "Unknown marker error";
+                                }
+                                android.util.Log.e("MainActivity", "Failed to add marker: " + markerErr);
+                            }
                         } catch (Exception e) {
                             android.util.Log.e("MainActivity", "Failed to add marker: " + e.getMessage());
                         }
@@ -1124,10 +1178,10 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 final int count = addedCount;
-                final String token = mapToken;
+                final String mapId = mapUuid;
                 runOnUiThread(() -> {
                     Toast.makeText(this, getString(R.string.map_created, count), Toast.LENGTH_SHORT).show();
-                    String url = "https://app.cartes.io/maps/" + token;
+                    String url = "https://app.cartes.io/maps/" + mapId;
                     Intent browserIntent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url));
                     startActivity(browserIntent);
                 });
