@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:background="@drawable/bg_beer_gradient">
 
-    <!-- Toolbar -->
+    <!-- Горен ред с бутон назад и заглавие. -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -21,39 +21,37 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_revert"
             android:contentDescription="@string/dialog_cancel"
-            app:tint="#FFD54F" />
+            app:tint="?attr/aleGold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:text="@string/ratings_title"
-            android:textColor="#FFFFFF"
+            android:textColor="?attr/aleTabTextSelected"
             android:textSize="22sp"
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- Empty state -->
+    <!-- Текст при празен списък с ревюта. -->
     <TextView
         android:id="@+id/ratingsEmpty"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/ratings_empty"
-        android:textColor="#B0BEC5"
+        android:textColor="?attr/aleTextHint"
         android:textSize="15sp"
         android:gravity="center"
         android:padding="32dp"
         android:visibility="gone" />
 
-    <!-- Ratings list -->
+    <!-- Recycler списък с оценките. -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/ratingsRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layoutAnimation="@anim/layout_list_enter"
         android:padding="8dp"
         android:clipToPadding="false" />
 
 </LinearLayout>
-
-
-

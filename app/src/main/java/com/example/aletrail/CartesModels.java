@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class CartesModels {
 
-    // MapResponse model
+    // Модел за MapResponse.
     public static class MapResponse {
         private String token;
         private String uuid;
@@ -27,7 +27,7 @@ public class CartesModels {
         public void setDescription(String description) { this.description = description; }
     }
 
-    // MapListResponse model
+    // Модел за MapListResponse.
     public static class MapListResponse {
         private List<MapResponse> data;
 
@@ -35,7 +35,7 @@ public class CartesModels {
         public void setData(List<MapResponse> data) { this.data = data; }
     }
 
-    // CreateMapRequest model
+    // Модел за CreateMapRequest.
     public static class CreateMapRequest {
         private String title;
         private String slug;
@@ -54,7 +54,7 @@ public class CartesModels {
         public void setDescription(String description) { this.description = description; }
     }
 
-    // UpdateMapRequest model
+    // Модел за UpdateMapRequest.
     public static class UpdateMapRequest {
         private String title;
         private String description;
@@ -67,7 +67,7 @@ public class CartesModels {
         public void setDescription(String description) { this.description = description; }
     }
 
-    // MarkerResponse model
+    // Модел за MarkerResponse.
     public static class MarkerResponse {
         private String id;
         private String category;
@@ -89,7 +89,7 @@ public class CartesModels {
         public void setDescription(String description) { this.description = description; }
     }
 
-    // MarkerListResponse model
+    // Модел за MarkerListResponse.
     public static class MarkerListResponse {
         private List<MarkerResponse> data;
 
@@ -97,7 +97,7 @@ public class CartesModels {
         public void setData(List<MarkerResponse> data) { this.data = data; }
     }
 
-    // CreateMarkerRequest model
+    // Модел за CreateMarkerRequest.
     public static class CreateMarkerRequest {
         private String map_token;
         private double lat;

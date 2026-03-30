@@ -9,9 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-/**
- * Displays all reviews/ratings for a specific brewery.
- */
+// Екран, който показва всички ревюта за една пивоварна.
 public class BreweryReviewsActivity extends AppCompatActivity {
 
     @Override
@@ -19,7 +17,7 @@ public class BreweryReviewsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_brewery_reviews);
 
-        // Hide system bars
+        // Скриваме системната лента.
         androidx.core.view.WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         androidx.core.view.WindowInsetsControllerCompat ic =
                 androidx.core.view.WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
@@ -50,7 +48,7 @@ public class BreweryReviewsActivity extends AppCompatActivity {
 
         Database database = Database.getInstance(this);
 
-        // Observe ratings for this brewery
+        // Слушаме списъка с ревюта за тази пивоварна.
         database.beerRatingDAO().getRatingsForBrewery(breweryId).observe(this, ratings -> {
             if (ratings != null && !ratings.isEmpty()) {
                 adapter.setRatings(ratings);
@@ -62,7 +60,7 @@ public class BreweryReviewsActivity extends AppCompatActivity {
             }
         });
 
-        // Observe average rating
+        // Слушаме средната оценка.
         database.beerRatingDAO().getAverageRatingForBrewery(breweryId).observe(this, avg -> {
             if (avg != null && avg > 0) {
                 avgRatingText.setText(getString(R.string.brewery_avg_rating, avg));
@@ -76,4 +74,3 @@ public class BreweryReviewsActivity extends AppCompatActivity {
         });
     }
 }
-

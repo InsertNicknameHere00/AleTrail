@@ -64,7 +64,7 @@ public class RatingAdapter extends RecyclerView.Adapter<RatingAdapter.RatingView
         }
 
         void bind(BeerRatingEntity rating) {
-            // Load brewery name async
+            // Вадим името на пивоварната във фонов поток.
             String breweryId = rating.getBreweryId();
             breweryName.setText(breweryId);
             executor.execute(() -> {
@@ -77,7 +77,7 @@ public class RatingAdapter extends RecyclerView.Adapter<RatingAdapter.RatingView
                 } catch (Exception ignored) {}
             });
 
-            // Beer name
+            // Име на бира (ако е въведено).
             if (rating.getBeerName() != null && !rating.getBeerName().isEmpty()) {
                 beerName.setText(itemView.getContext().getString(R.string.rating_item_beer, rating.getBeerName()));
                 beerName.setVisibility(View.VISIBLE);
@@ -86,11 +86,11 @@ public class RatingAdapter extends RecyclerView.Adapter<RatingAdapter.RatingView
                 beerName.setVisibility(View.VISIBLE);
             }
 
-            // Rating
+            // Оценка
             ratingStars.setRating(rating.getRating());
             ratingValue.setText(String.format(Locale.getDefault(), "%.1f", rating.getRating()));
 
-            // Comment
+            // Коментар
             if (rating.getComment() != null && !rating.getComment().isEmpty()) {
                 comment.setText(rating.getComment());
                 comment.setVisibility(View.VISIBLE);
@@ -98,10 +98,9 @@ public class RatingAdapter extends RecyclerView.Adapter<RatingAdapter.RatingView
                 comment.setVisibility(View.GONE);
             }
 
-            // Date
+            // Дата
             SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
             date.setText(sdf.format(new Date(rating.getRatingTimestamp())));
         }
     }
 }
-

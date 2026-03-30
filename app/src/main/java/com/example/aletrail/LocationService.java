@@ -21,32 +21,28 @@ public class LocationService {
         this.fusedLocationClient = LocationServices.getFusedLocationProviderClient(context);
     }
 
-    /**
-     * Получава текуща локация с нов API
-     */
+    // Взима текущата локация през fused provider.
     public void getCurrentLocation(OnSuccessListener<Location> onSuccessListener) {
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
-        // Използваме новия API метод
+        // Първо пробваме current-location API.
         CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         fusedLocationClient.getCurrentLocation(
                 Priority.PRIORITY_HIGH_ACCURACY,
                 cancellationTokenSource.getToken()
         ).addOnSuccessListener(onSuccessListener)
          .addOnFailureListener(e -> {
-             // Fallback to last known location
+             // Fallback, ако current-location заявката падне.
              fusedLocationClient.getLastLocation().addOnSuccessListener(onSuccessListener);
          });
     }
 
-    /**
-     * Изчислява разстояние между две точки (в километри)
-     */
+    // Изчислява разстояние между две lat/lng точки (в km).
     public static double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-        final int R = 6371; // Radius of the earth in km
+        final int R = 6371; // Радиус на Земята в km
 
         double latDistance = Math.toRadians(lat2 - lat1);
         double lonDistance = Math.toRadians(lon2 - lon1);
@@ -58,9 +54,7 @@ public class LocationService {
         return R * c;
     }
 
-    /**
-     * Проверява дали потребителят е в близост до пивоварна (в рамките на 100м)
-     */
+    // Връща true, ако user е близо до brewery-то (~100m).
     public static boolean isNearBrewery(Location userLocation, double breweryLat, double breweryLon) {
         if (userLocation == null) return false;
 
@@ -71,12 +65,10 @@ public class LocationService {
             breweryLon
         );
 
-        return distance <= 0.1; // 100 meters
+        return distance <= 0.1; // 0.1 km ~= 100m
     }
 
-    /**
-     * Форматира разстояние за показване
-     */
+    // Форматира разстоянието за UI текст.
     public static String formatDistance(double distanceInKm) {
         if (distanceInKm < 1) {
             return String.format("%.0f m", distanceInKm * 1000);

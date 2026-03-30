@@ -25,7 +25,7 @@ public class VisitEntity {
         this.synced = false;
     }
 
-    // Getters and Setters
+    // Стандартни getters/setters за Room.
     public int getVisitId() { return visitId; }
     public void setVisitId(int visitId) { this.visitId = visitId; }
 

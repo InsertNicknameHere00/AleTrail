@@ -85,11 +85,7 @@ public class LoyaltyCardAdapter extends RecyclerView.Adapter<LoyaltyCardAdapter.
         diffResult.dispatchUpdatesTo(this);
     }
 
-    /**
-     * Calculates the current discount percentage based on stamps.
-     * Every 2 stamps = 5% discount, up to stamp 10 (max 25%).
-     * Resets every 10 stamps cycle.
-     */
+    // Правило за отстъпка: на всеки 2 печата = 5%, цикълът е 10 печата.
     public static int calculateDiscount(int totalStamps) {
         int cycleStamps = totalStamps % 10;
         return (cycleStamps / 2) * 5;
@@ -118,7 +114,7 @@ public class LoyaltyCardAdapter extends RecyclerView.Adapter<LoyaltyCardAdapter.
         }
 
         public void bind(LoyaltyCardEntity card) {
-            // Load brewery name from database asynchronously
+            // Вземаме името на пивоварната във фонов поток.
             String breweryId = card.getBreweryId();
             cardBreweryName.setText(R.string.loyalty_card_loading);
 
@@ -136,11 +132,11 @@ public class LoyaltyCardAdapter extends RecyclerView.Adapter<LoyaltyCardAdapter.
 
             stampCount.setText(card.getStamps() + "/" + card.getMaxStamps());
 
-            // Calculate progress percentage
+            // Процент прогрес спрямо нужните печати.
             int progress = (int) ((card.getStamps() / (float) card.getMaxStamps()) * 100);
             stampProgressBar.setProgress(progress);
 
-            // Show compact stamp display for the current discount cycle (10 stamps per cycle)
+            // Показваме мини цикъл от 10 стъпки за текущата отстъпка.
             int cycleStamps = card.getStamps() % 10;
             int cycleMax = 10;
             StringBuilder emojis = new StringBuilder();
@@ -153,7 +149,7 @@ public class LoyaltyCardAdapter extends RecyclerView.Adapter<LoyaltyCardAdapter.
             }
             stampEmojis.setText(emojis.toString());
 
-            // Calculate and show discount with dynamic styling
+            // Показваме активната отстъпка или прогреса в цикъла.
             int discount = calculateDiscount(card.getStamps());
             android.content.Context ctx = itemView.getContext();
             if (discount > 0) {
@@ -181,12 +177,12 @@ public class LoyaltyCardAdapter extends RecyclerView.Adapter<LoyaltyCardAdapter.
                 if (listener != null) listener.onHistoryClick(card);
             });
 
-            // Delete button click
+            // Бутон за изтриване.
             deleteCardButton.setOnClickListener(v -> {
                 if (listener != null) listener.onDeleteClick(card);
             });
 
-            // Long press to delete (keep as alternative)
+            // Дългото натискане остава като бърз delete.
             itemView.setOnLongClickListener(v -> {
                 if (listener != null) listener.onDeleteClick(card);
                 return true;

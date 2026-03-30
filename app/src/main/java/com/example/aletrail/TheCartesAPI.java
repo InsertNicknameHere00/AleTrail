@@ -19,7 +19,7 @@ import okhttp3.ResponseBody;
 
 public interface TheCartesAPI {
 
-    // Map operations
+    // Endpoint-и за създаване и обновяване на карти.
     @GET("maps")
     Call<MapListResponse> getMaps();
 
@@ -32,7 +32,7 @@ public interface TheCartesAPI {
     @PATCH("maps/{token}")
     Call<MapResponse> updateMap(@Path("token") String token, @Body UpdateMapRequest mapRequest);
 
-    // Marker operations
+    // Endpoint-и за добавяне/триене на marker-и.
     @GET("maps/{token}/markers")
     Call<MarkerListResponse> getMapMarkers(@Path("token") String token);
 

@@ -50,7 +50,7 @@ public class LoginActivity extends AppCompatActivity {
         database = Database.getInstance(this);
         executor = Executors.newSingleThreadExecutor();
 
-        // If already logged in (including guest), go straight to main
+        // Ако вече е влязъл (вкл. guest), пращаме към main.
         if (appwriteService.isLoggedInLocally()) {
             navigateToMain();
             return;
@@ -58,7 +58,7 @@ public class LoginActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_login);
 
-        // Hide system bars for immersive experience
+        // Скриваме системната лента за по-чист екран.
         androidx.core.view.WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         androidx.core.view.WindowInsetsControllerCompat ic = androidx.core.view.WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
         ic.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars());
@@ -93,7 +93,7 @@ public class LoginActivity extends AppCompatActivity {
 
         skipLogin.setOnClickListener(v -> continueAsGuest());
 
-        // Register Business (accessible before logging in)
+        // Регистрация на бизнес е достъпна и преди логин.
         findViewById(R.id.registerBusinessButton).setOnClickListener(v -> {
             startActivity(new Intent(this, CreateBusinessActivity.class));
         });
@@ -215,11 +215,11 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void continueAsGuest() {
-        // Save a guest user locally
+        // Създаваме локален guest профил.
         String guestId = "guest_" + System.currentTimeMillis();
         ensureRoomUser(guestId, null, "Guest", "guest");
 
-        // Mark as logged in locally so the app doesn't redirect back
+        // Пазим локално, че е логнат, за да отвори main.
         getSharedPreferences("aletrail_prefs", MODE_PRIVATE).edit()
                 .putString("appwrite_user_id", guestId)
                 .putString("appwrite_user_name", "Guest")
@@ -229,9 +229,7 @@ public class LoginActivity extends AppCompatActivity {
         navigateToMain();
     }
 
-    /**
-     * Creates or updates the UserEntity in Room AND syncs to Appwrite Database.
-     */
+    // Гарантира, че има потребител в Room, после sync към Appwrite (без guest).
     private void ensureRoomUser(String userId, String email, String name, String provider) {
         executor.execute(() -> {
             UserEntity user = new UserEntity();
@@ -242,7 +240,7 @@ public class LoginActivity extends AppCompatActivity {
             user.setCreatedAt(System.currentTimeMillis());
             database.userDAO().insert(user);
 
-            // Also sync the user profile to Appwrite Database (not just Auth)
+            // Качваме профила в облака само за реални профили.
             if (userId != null && !userId.startsWith("guest_")) {
                 appwriteService.syncUserProfile(user, new AppwriteService.SimpleCallback() {
                     @Override
@@ -287,5 +285,3 @@ public class LoginActivity extends AppCompatActivity {
         return input.getText() != null ? input.getText().toString().trim() : "";
     }
 }
-
-

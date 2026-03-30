@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permissions -->
+    <!-- Основни permissions за internet, location и QR scan. -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -38,7 +38,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true">
-            <!-- Deep link for email verification callback -->
+            <!-- Deep link след email verification redirect. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -69,13 +69,13 @@
             android:name=".BreweryReviewsActivity"
             android:exported="false" />
 
-        <!-- ZXing Barcode Scanner Activity -->
+        <!-- QR scanner activity от ZXing library. -->
         <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"
             android:screenOrientation="portrait"
             tools:replace="screenOrientation" />
 
-        <!-- FileProvider for camera image capture -->
+        <!-- FileProvider дава достъп за запис на profile image от камера. -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

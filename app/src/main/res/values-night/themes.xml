@@ -1,26 +1,47 @@
 <resources>
-    <!-- Base application theme - DARK variant (beer gradient) -->
+    <!-- Стойности за тъмен theme. -->
     <style name="Base.Theme.AleTrail" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Основни Material цветове. -->
         <item name="colorPrimary">@color/ale_primary</item>
-        <item name="colorPrimaryDark">@color/ale_primary_dark</item>
-        <item name="colorAccent">@color/ale_accent</item>
+        <item name="colorOnPrimary">#1A1205</item>
+        <item name="colorPrimaryContainer">#5B3A14</item>
+        <item name="colorOnPrimaryContainer">#FFE6BE</item>
+        <item name="colorSecondary">@color/ale_fab_secondary</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="android:colorBackground">@color/ale_bg_dark</item>
+        <item name="colorSurface">@color/ale_bg_card</item>
+        <item name="colorSurfaceVariant">@color/ale_bg_card_lighter</item>
+        <item name="colorOnSurface">@color/text_primary_dark</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary_dark</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/ale_bg_dark</item>
+        <item name="android:windowAnimationStyle">@style/AleTrail.WindowAnimation</item>
 
-        <!-- Custom AleTrail attributes (dark — the original beer gradient look) -->
+        <!-- Custom цветове за AleTrail екрани. -->
         <item name="aleCardBackground">@color/ale_bg_card</item>
         <item name="aleCardBackgroundLighter">@color/ale_bg_card_lighter</item>
         <item name="aleTextPrimary">@color/text_primary_dark</item>
         <item name="aleTextSecondary">@color/text_secondary_dark</item>
         <item name="aleTextHint">@color/text_hint_dark</item>
-        <item name="aleGold">#FFD54F</item>
+        <item name="aleGold">@color/ale_primary</item>
         <item name="aleButtonText">@color/card_text_on_gradient</item>
-        <item name="aleBadgeCircle">#33FFB300</item>
-        <item name="aleBadgeCircleStroke">#66FFB300</item>
-        <item name="aleBadgeNameEarned">#FFD54F</item>
+        <item name="aleBadgeCircle">#33F2B544</item>
+        <item name="aleBadgeCircleStroke">#66F2B544</item>
+        <item name="aleBadgeNameEarned">#FFD46A</item>
         <item name="aleBadgeNameUnearned">#9E9E9E</item>
-        <item name="aleBadgeDescriptionText">#99FFFFFF</item>
-        <item name="aleChipEarned">#33FFB300</item>
-        <item name="aleChipStroke">#FFB300</item>
-        <item name="aleDiscountGreen">#81C784</item>
-        <item name="aleOverlayBg">#E6000000</item>
+        <item name="aleBadgeDescriptionText">#A8B4C4</item>
+        <item name="aleChipEarned">#33F2B544</item>
+        <item name="aleChipStroke">@color/ale_primary</item>
+        <item name="aleDiscountGreen">#A5D6A7</item>
+        <item name="aleOverlayBg">#1AFFFFFF</item>
+
+        <!-- Допълнителни UI token-и. -->
+        <item name="aleSurfaceStroke">@color/ale_surface_stroke</item>
+        <item name="aleLink">@color/ale_link</item>
+        <item name="aleTabText">@color/ale_tab_text</item>
+        <item name="aleTabTextSelected">@color/ale_tab_text_selected</item>
+        <item name="aleFabSecondary">@color/ale_fab_secondary</item>
+        <item name="aleDanger">@color/ale_danger</item>
+        <item name="aleDangerContainer">@color/ale_danger_container</item>
     </style>
 </resources>

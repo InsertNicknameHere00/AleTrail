@@ -13,13 +13,14 @@ public class UserEntity {
 
     private String email;
     private String displayName;
-    private String authProvider; // "google", "facebook", "email"
+    // Пазим откъде е логинът (email/google и т.н.).
+    private String authProvider;
     private String profileImageUrl;
     private long createdAt;
     private long lastSyncTimestamp;
     private boolean isPremium;
 
-    // Gamification stats
+    // Тези стойности се ползват за stats и badges.
     private int totalStamps;
     private int totalVisits;
     private int totalBreweriesVisited;
@@ -33,7 +34,7 @@ public class UserEntity {
         this.totalBreweriesVisited = 0;
     }
 
-    // Getters and Setters
+    // Стандартни getters/setters за профила.
     @NonNull
     public String getUserId() { return userId; }
     public void setUserId(@NonNull String userId) { this.userId = userId; }

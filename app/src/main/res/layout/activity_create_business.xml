@@ -12,11 +12,12 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <!-- Header -->
+        <!-- Header с бутон назад и заглавие. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:baselineAligned="false"
             android:gravity="center_vertical"
             android:layout_marginBottom="24dp">
 
@@ -27,25 +28,23 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:src="@android:drawable/ic_menu_revert"
                 android:contentDescription="@string/dialog_cancel"
-                app:tint="#FFD54F" />
+                app:tint="?attr/aleGold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:text="@string/business_title"
-                android:textColor="#FFFFFF"
+                android:textColor="?attr/aleTabTextSelected"
                 android:textSize="22sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Form Card -->
+        <!-- Основна форма за създаване на business карта/пивоварна. -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="8dp"
-            app:cardBackgroundColor="?attr/aleCardBackground">
+            style="@style/AleTrailCardSurfaceLarge">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -58,7 +57,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     android:hint="@string/business_name_hint"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    style="@style/AleTrail.TextInput.Outlined">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/businessName"
                         android:layout_width="match_parent"
@@ -71,7 +70,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     android:hint="@string/business_type_hint"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    style="@style/AleTrail.TextInput.Outlined">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/businessType"
                         android:layout_width="match_parent"
@@ -84,7 +83,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     android:hint="@string/business_street_hint"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    style="@style/AleTrail.TextInput.Outlined">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/businessStreet"
                         android:layout_width="match_parent"
@@ -96,6 +95,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
+                    android:baselineAligned="false"
                     android:layout_marginBottom="12dp">
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -104,7 +104,7 @@
                         android:layout_weight="1"
                         android:layout_marginEnd="6dp"
                         android:hint="@string/business_city_hint"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                        style="@style/AleTrail.TextInput.Outlined">
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/businessCity"
                             android:layout_width="match_parent"
@@ -118,7 +118,7 @@
                         android:layout_weight="1"
                         android:layout_marginStart="6dp"
                         android:hint="@string/business_state_hint"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                        style="@style/AleTrail.TextInput.Outlined">
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/businessState"
                             android:layout_width="match_parent"
@@ -131,6 +131,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
+                    android:baselineAligned="false"
                     android:layout_marginBottom="12dp">
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -139,7 +140,7 @@
                         android:layout_weight="1"
                         android:layout_marginEnd="6dp"
                         android:hint="@string/business_postal_hint"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                        style="@style/AleTrail.TextInput.Outlined">
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/businessPostal"
                             android:layout_width="match_parent"
@@ -153,7 +154,7 @@
                         android:layout_weight="1"
                         android:layout_marginStart="6dp"
                         android:hint="@string/business_country_hint"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                        style="@style/AleTrail.TextInput.Outlined">
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/businessCountry"
                             android:layout_width="match_parent"
@@ -167,7 +168,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
                     android:hint="@string/business_phone_hint"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    style="@style/AleTrail.TextInput.Outlined">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/businessPhone"
                         android:layout_width="match_parent"
@@ -181,7 +182,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="20dp"
                     android:hint="@string/business_website_hint"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    style="@style/AleTrail.TextInput.Outlined">
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/businessWebsite"
                         android:layout_width="match_parent"
@@ -192,13 +193,10 @@
 
                 <Button
                     android:id="@+id/createBusinessButton"
+                    style="@style/AleTrail.Button.Primary"
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:text="@string/business_create"
-                    android:textColor="?attr/aleButtonText"
-                    android:background="@drawable/bg_button_primary"
-                    android:textAllCaps="false"
-                    android:textStyle="bold"
                     android:textSize="15sp" />
 
             </LinearLayout>
@@ -206,4 +204,3 @@
 
     </LinearLayout>
 </ScrollView>
-

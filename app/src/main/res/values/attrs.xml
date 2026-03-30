@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Custom AleTrail theme attributes -->
+    <!-- Custom theme атрибути за AleTrail. -->
     <attr name="aleCardBackground" format="color" />
     <attr name="aleCardBackgroundLighter" format="color" />
     <attr name="aleTextPrimary" format="color" />
@@ -17,5 +17,12 @@
     <attr name="aleChipStroke" format="color" />
     <attr name="aleDiscountGreen" format="color" />
     <attr name="aleOverlayBg" format="color" />
-</resources>
 
+    <attr name="aleSurfaceStroke" format="color" />
+    <attr name="aleLink" format="color" />
+    <attr name="aleTabText" format="color" />
+    <attr name="aleTabTextSelected" format="color" />
+    <attr name="aleFabSecondary" format="color" />
+    <attr name="aleDanger" format="color" />
+    <attr name="aleDangerContainer" format="color" />
+</resources>

@@ -24,9 +24,7 @@ public class SyncService {
         this.executorService = Executors.newSingleThreadExecutor();
     }
 
-    /**
-     * Проверява за интернет свързаност
-     */
+    // Бърза проверка за интернет преди sync.
     public boolean isNetworkAvailable() {
         ConnectivityManager connectivityManager =
             (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -34,16 +32,14 @@ public class SyncService {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    /**
-     * Синхронизира всички неsinc-нати данни
-     */
+    // Пуска един пълен sync за текущия user.
     public void syncAllData(String userId) {
         if (!isNetworkAvailable()) {
             Log.d(TAG, "No network available, skipping sync");
             return;
         }
 
-        // Don't sync for guest users
+        // Пропускаме cloud sync за guest профили.
         if (userId == null || userId.startsWith("guest_")) {
             Log.d(TAG, "Guest user, skipping cloud sync");
             return;
@@ -58,7 +54,7 @@ public class SyncService {
                 syncLoyaltyCards(userId);
                 syncBadges(userId);
 
-                // Update last sync timestamp
+                // Записваме кога е минал последният пълен sync.
                 long currentTime = System.currentTimeMillis();
                 database.userDAO().updateLastSyncTimestamp(userId, currentTime);
 
@@ -69,12 +65,10 @@ public class SyncService {
         });
     }
 
-    /**
-     * Syncs the user profile to Appwrite Database
-     */
+    // Качва профила към Appwrite.
     private void syncUserProfile(String userId) {
         try {
-            // getUserByIdSync doesn't exist yet, so we use a blocking approach
+            // Ползваме sync DAO метод, защото сме извън main thread.
             UserEntity user = database.userDAO().getUserByIdSync(userId);
             if (user != null) {
                 appwriteService.syncUserProfile(user, new AppwriteService.SimpleCallback() {
@@ -94,9 +88,7 @@ public class SyncService {
         }
     }
 
-    /**
-     * Syncs favorite breweries to Appwrite
-     */
+    // Качва текущите favorites.
     private void syncFavorites(String userId) {
         try {
             List<BreweryEntity> favorites = database.AleDAO().getFavoritesSync();
@@ -109,7 +101,7 @@ public class SyncService {
 
                     @Override
                     public void onError(String message) {
-                        // May already exist — that's OK
+                        // Дубликат в cloud не е критичен.
                         Log.d(TAG, "Favorite sync note for " + brewery.getName() + ": " + message);
                     }
                 });
@@ -120,9 +112,7 @@ public class SyncService {
         }
     }
 
-    /**
-     * Syncs loyalty cards to Appwrite
-     */
+    // Качва loyalty картите.
     private void syncLoyaltyCards(String userId) {
         try {
             List<LoyaltyCardEntity> cards = database.loyaltyCardDAO().getCardsForUserSync(userId);
@@ -145,12 +135,10 @@ public class SyncService {
         }
     }
 
-    /**
-     * Syncs badges to Appwrite
-     */
+    // Качва badges и техния прогрес.
     private void syncBadges(String userId) {
         try {
-            // Sync all badges (earned and unearned) so Appwrite has the full set
+            // Пращаме пълния списък, за да са еднакви local и cloud.
             List<BadgeEntity> badges = database.badgeDAO().getAllBadgesForUserSync(userId);
             for (BadgeEntity badge : badges) {
                 appwriteService.syncBadge(badge, new AppwriteService.SimpleCallback() {
@@ -171,9 +159,7 @@ public class SyncService {
         }
     }
 
-    /**
-     * Синхронизира посещения
-     */
+    // Качва посещенията, които още са само локално.
     private void syncVisits() {
         List<VisitEntity> unsyncedVisits = database.visitDAO().getUnsyncedVisits();
         for (VisitEntity visit : unsyncedVisits) {
@@ -193,9 +179,7 @@ public class SyncService {
         Log.d(TAG, "Queued " + unsyncedVisits.size() + " visits for sync");
     }
 
-    /**
-     * Синхронизира рейтинги
-     */
+    // Качва рейтингите, които още са само локално.
     private void syncRatings() {
         List<BeerRatingEntity> unsyncedRatings = database.beerRatingDAO().getUnsyncedRatings();
         for (BeerRatingEntity rating : unsyncedRatings) {
@@ -216,14 +200,12 @@ public class SyncService {
     }
 
 
-    /**
-     * Планира автоматична синхронизация
-     */
+    // Прост loop за периодичен auto sync.
     public void scheduleAutoSync(String userId) {
         executorService.execute(() -> {
             while (true) {
                 try {
-                    Thread.sleep(300000); // 5 minutes
+                    Thread.sleep(300000); // Изчакваме 5 мин между проверките.
                     if (isNetworkAvailable()) {
                         syncAllData(userId);
                     }

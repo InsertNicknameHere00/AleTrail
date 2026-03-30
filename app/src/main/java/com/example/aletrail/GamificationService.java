@@ -13,7 +13,7 @@ public class GamificationService {
     private AppwriteService appwriteService;
     private ExecutorService executorService;
 
-    // Badge types
+    // Badge type keys.
     public static final String BADGE_FIRST_VISIT = "FIRST_VISIT";
     public static final String BADGE_BRONZE = "BRONZE";
     public static final String BADGE_SILVER = "SILVER";
@@ -42,7 +42,7 @@ public class GamificationService {
     public static final String BADGE_FIVE_STAR = "FIVE_STAR";
     public static final String BADGE_GLOBETROTTER = "GLOBETROTTER";
     public static final String BADGE_DEDICATION = "DEDICATION";
-    // New badges batch 2
+    // Extra badge batch.
     public static final String BADGE_PARTY_STARTER = "PARTY_STARTER";
     public static final String BADGE_HOMEBODY = "HOMEBODY";
     public static final String BADGE_DATA_NERD = "DATA_NERD";
@@ -62,9 +62,7 @@ public class GamificationService {
         this.executorService = Executors.newSingleThreadExecutor();
     }
 
-    /**
-     * Инициализира badges за нов потребител
-     */
+    // Inserts default badges for a new user.
     public void initializeBadgesForUser(String userId) {
         executorService.execute(() -> {
             createBadgeIfMissing(userId, BADGE_FIRST_VISIT, "🎉 First Visit", "Visit your first brewery", "🎉", 1);
@@ -82,7 +80,7 @@ public class GamificationService {
             createBadgeIfMissing(userId, BADGE_BEER_CONNOISSEUR, "🍺 Beer Connoisseur", "Rate 20 beers", "🍺", 20);
             createBadgeIfMissing(userId, BADGE_CRITIC, "📝 Critic", "Rate 5 beers", "📝", 5);
             createBadgeIfMissing(userId, BADGE_MASTER_CRITIC, "🎓 Master Critic", "Rate 50 beers", "🎓", 50);
-            // New badges
+            // Extra badges.
             createBadgeIfMissing(userId, BADGE_WEEKEND_WARRIOR, "🎊 Weekend Warrior", "Visit 5 breweries on weekends", "🎊", 5);
             createBadgeIfMissing(userId, BADGE_NIGHT_OWL, "🦉 Night Owl", "Collect 20 stamps after 6 PM", "🦉", 20);
             createBadgeIfMissing(userId, BADGE_CENTURION, "💯 Centurion", "Reach 100 total visits", "💯", 100);
@@ -97,7 +95,7 @@ public class GamificationService {
             createBadgeIfMissing(userId, BADGE_GLOBETROTTER, "🧭 Globetrotter", "Visit breweries in 10 states/countries", "🧭", 10);
             createBadgeIfMissing(userId, BADGE_DEDICATION, "❤️ Dedication", "Visit the same brewery 10 times", "❤️", 10);
 
-            // New badges batch 2
+            // Extra badge batch.
             createBadgeIfMissing(userId, BADGE_PARTY_STARTER, "🎈 Party Starter", "Share your first loyalty card", "🎈", 1);
             createBadgeIfMissing(userId, BADGE_HOMEBODY, "🏠 Homebody", "Visit the same brewery 5 times", "🏠", 5);
             createBadgeIfMissing(userId, BADGE_DATA_NERD, "📊 Data Nerd", "Rate 30 beers", "📊", 30);
@@ -115,9 +113,7 @@ public class GamificationService {
         });
     }
 
-    /**
-     * Creates a badge only if it doesn't already exist for this user (safe for existing users).
-     */
+    // Безопасен insert helper, за да не правим duplicate badge редове.
     private void createBadgeIfMissing(String userId, String badgeType, String badgeName,
                                        String description, String icon, int requiredCount) {
         BadgeEntity existing = database.badgeDAO().getBadgeByTypeSync(userId, badgeType);
@@ -126,9 +122,7 @@ public class GamificationService {
         }
     }
 
-    /**
-     * Създава badge
-     */
+    // Създава badge ред в Room.
     private void createBadge(String userId, String badgeType, String badgeName,
                             String description, String icon, int requiredCount, String breweryId) {
         BadgeEntity badge = new BadgeEntity();
@@ -144,13 +138,11 @@ public class GamificationService {
         database.badgeDAO().insert(badge);
     }
 
-    /**
-     * Checks and unlocks badges after a new visit/stamp.
-     */
+    // Пуска всички badge проверки по брой/праг.
     public void checkAndUnlockBadges(String userId, int totalStamps, int totalVisits,
                                      int uniqueBreweriesCount) {
         executorService.execute(() -> {
-            // Stamp-based badges
+            // Stamp milestones.
             checkBadge(userId, BADGE_BRONZE, totalStamps, 10);
             checkBadge(userId, BADGE_REGULAR, totalStamps, 15);
             checkBadge(userId, BADGE_SILVER, totalStamps, 25);
@@ -161,7 +153,7 @@ public class GamificationService {
             checkBadge(userId, BADGE_LEGEND, totalStamps, 90);
             checkBadge(userId, BADGE_PLATINUM, totalStamps, 100);
 
-            // Visit-based badges
+            // Visit milestones.
             if (totalVisits >= 1) {
                 unlockBadgeByType(userId, BADGE_FIRST_VISIT);
             }
@@ -170,28 +162,24 @@ public class GamificationService {
             checkBadge(userId, BADGE_HALF_CENTURY, totalVisits, 50);
             checkBadge(userId, BADGE_CENTURION, totalVisits, 100);
 
-            // Stamp-based (additional)
+            // Допълнителни stamp milestones.
             checkBadge(userId, BADGE_STAMP_STREAK, totalStamps, 20);
             checkBadge(userId, BADGE_COMEBACK_KID, totalStamps, 30);
 
-            // Brewery exploration badges
+            // Badge-ове за обикаляне на brewery-та.
             checkBadge(userId, BADGE_EXPLORER, uniqueBreweriesCount, 10);
             checkBadge(userId, BADGE_EXPLORER_PRO, uniqueBreweriesCount, 25);
         });
     }
 
-    /**
-     * Проверява дали badge трябва да бъде отключен
-     */
+    // Unlock helper, когато текущата стойност мине нужния праг.
     private void checkBadge(String userId, String badgeType, int currentCount, int required) {
         if (currentCount >= required) {
             unlockBadgeByType(userId, badgeType);
         }
     }
 
-    /**
-     * Отключва badge по тип — queries the DB and marks as earned if not already.
-     */
+    // Маркира badge като earned и го sync-ва към cloud.
     private void unlockBadgeByType(String userId, String badgeType) {
         try {
             BadgeEntity badge = database.badgeDAO().getBadgeByTypeSync(userId, badgeType);
@@ -200,7 +188,7 @@ public class GamificationService {
                 database.badgeDAO().unlockBadge(badge.getBadgeId(), now);
                 Log.d(TAG, "Badge unlocked: " + badgeType + " for user: " + userId);
 
-                // Re-read updated badge for Appwrite sync
+                // Презареждаме обновения badge за cloud sync.
                 BadgeEntity updated = database.badgeDAO().getBadgeByTypeSync(userId, badgeType);
                 if (updated != null && appwriteService != null
                         && userId != null && !userId.startsWith("guest_")) {
@@ -225,12 +213,10 @@ public class GamificationService {
         }
     }
 
-    /**
-     * Checks badge for ratings — called after submitting a rating.
-     */
+    // Проверява rating badge-овете.
     public void checkRatingBadges(String userId, int totalRatings) {
         executorService.execute(() -> {
-            // Rating count badges
+            // Rating milestones.
             checkBadge(userId, BADGE_TRAILBLAZER, totalRatings, 1);
             checkBadge(userId, BADGE_CRITIC, totalRatings, 5);
             checkBadge(userId, BADGE_TASTE_TESTER, totalRatings, 10);
@@ -238,7 +224,7 @@ public class GamificationService {
             checkBadge(userId, BADGE_DATA_NERD, totalRatings, 30);
             checkBadge(userId, BADGE_MASTER_CRITIC, totalRatings, 50);
 
-            // Five-star rating badges
+            // Five-star milestones.
             try {
                 int fiveStarCount = database.beerRatingDAO().getFiveStarRatingCountSync(userId);
                 checkBadge(userId, BADGE_SWEET_TOOTH, fiveStarCount, 3);
@@ -249,9 +235,7 @@ public class GamificationService {
         });
     }
 
-    /**
-     * Checks loyalty card related badges — call after card creation or stamp.
-     */
+    // Проверява badge-овете, свързани с loyalty cards.
     public void checkCardBadges(String userId) {
         executorService.execute(() -> {
             try {
@@ -266,23 +250,18 @@ public class GamificationService {
         });
     }
 
-    /**
-     * Checks sharing badge — call after sharing a loyalty card.
-     */
+    // Unlock-ва share badge-а при първо споделяне.
     public void checkSharingBadges(String userId) {
         executorService.execute(() -> {
-            // Party Starter: share at least 1 card (we unlock on first share)
             unlockBadgeByType(userId, BADGE_PARTY_STARTER);
         });
     }
 
-    /**
-     * Checks visit-related badges (homebody, etc.) — call after a new visit/stamp.
-     */
+    // Проверява badge-ове по модел на посещения (пример: Homebody).
     public void checkVisitBadges(String userId) {
         executorService.execute(() -> {
             try {
-                // Homebody: visit same brewery 5+ times
+                // Homebody: посещения в една и съща brewery 5+ пъти.
                 int maxVisits = database.visitDAO().getMaxVisitsToSingleBrewerySync(userId);
                 checkBadge(userId, BADGE_HOMEBODY, maxVisits, 5);
                 checkBadge(userId, BADGE_DEDICATION, maxVisits, 10);

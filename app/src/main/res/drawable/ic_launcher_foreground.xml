@@ -4,43 +4,43 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Beer mug body -->
+    <!-- Форма на халба. -->
     <path
         android:fillColor="#FFFFFF"
         android:pathData="M36,34 L36,78 C36,81 38,83 41,83 L63,83 C66,83 68,81 68,78 L68,34 Z" />
 
-    <!-- Beer liquid (amber) -->
+    <!-- Бира вътре. -->
     <path
         android:fillColor="#FFB300"
         android:pathData="M38,42 L38,76 C38,78.5 39.5,80 42,80 L62,80 C64.5,80 66,78.5 66,76 L66,42 Z" />
 
-    <!-- Foam top -->
+    <!-- Пяна. -->
     <path
         android:fillColor="#FFF8E1"
         android:pathData="M36,38 C36,34 39,32 42,32 C44,30 47,29 50,30 C52,28 56,28 58,30 C60,29 63,30 64,32 C67,32 68,34 68,38 L68,42 L36,42 Z" />
 
-    <!-- Foam detail bubble left -->
+    <!-- Балонче вляво. -->
     <path
         android:fillColor="#FFFDE7"
         android:pathData="M42,36 m-2,0 a2,2 0 1,1 4,0 a2,2 0 1,1 -4,0" />
 
-    <!-- Foam detail bubble right -->
+    <!-- Балонче вдясно. -->
     <path
         android:fillColor="#FFFDE7"
         android:pathData="M56,35 m-2.5,0 a2.5,2.5 0 1,1 5,0 a2.5,2.5 0 1,1 -5,0" />
 
-    <!-- Mug handle outer -->
+    <!-- Дръжка. -->
     <path
         android:fillColor="#FFFFFF"
         android:pathData="M68,44 L73,44 C77,44 80,47 80,51 L80,61 C80,65 77,68 73,68 L68,68 L68,64 L72,64 C74.5,64 76,62 76,60 L76,52 C76,50 74.5,48 72,48 L68,48 Z" />
 
-    <!-- Beer highlight on glass -->
+    <!-- Отблясък на стъклото. -->
     <path
         android:fillColor="#FFD54F"
         android:alpha="0.4"
         android:pathData="M40,44 L42,44 L42,74 L40,74 Z" />
 
-    <!-- Subtle hop/wheat accent at bottom of mug -->
+    <!-- Акцент долу. -->
     <path
         android:fillColor="#FF8F00"
         android:alpha="0.3"

@@ -29,51 +29,35 @@ public class BreweryRepository {
         this.appwriteService = AppwriteService.getInstance(context);
     }
 
-    /**
-     * Получава всички пивоварни от локалната база
-     */
+    // Reads all breweries stored locally.
     public LiveData<List<BreweryEntity>> getAllBreweries() {
         return breweryDao.getAllAles();
     }
 
-    /**
-     * Търси пивоварни по име
-     */
+    // Local search by brewery name.
     public LiveData<List<BreweryEntity>> searchBreweries(String query) {
         return breweryDao.searchAles(query);
     }
 
-    /**
-     * Получава любими пивоварни
-     */
+    // Reads only favorite breweries.
     public LiveData<List<BreweryEntity>> getFavoriteBreweries() {
         return breweryDao.getFavorites();
     }
 
-    /**
-     * Get breweries by state from database
-     */
+    // Filter helpers from local DB.
     public LiveData<List<BreweryEntity>> getBreweriesByState(String state) {
         return breweryDao.getBreweriesByState(state);
     }
 
-    /**
-     * Get breweries by type from database
-     */
     public LiveData<List<BreweryEntity>> getBreweriesByType(String type) {
         return breweryDao.getBreweriesByType(type);
     }
 
-    /**
-     * Get breweries by state and type from database
-     */
     public LiveData<List<BreweryEntity>> getBreweriesByStateAndType(String state, String type) {
         return breweryDao.getBreweriesByStateAndType(state, type);
     }
 
-    /**
-     * Fetch breweries from API by location
-     */
+    // Fetch nearby breweries from API.
     public void fetchBreweriesByLocation(double latitude, double longitude, int perPage) {
         String location = latitude + "," + longitude;
         api.getBreweriesByLocation(location, perPage).enqueue(new Callback<List<BreweryEntity>>() {
@@ -94,9 +78,7 @@ public class BreweryRepository {
         });
     }
 
-    /**
-     * Fetch breweries by city
-     */
+    // Fetch breweries by city from API.
     public void fetchBreweriesByCity(String city, int perPage) {
         api.getBreweriesByCity(city, perPage).enqueue(new Callback<List<BreweryEntity>>() {
             @Override
@@ -116,9 +98,7 @@ public class BreweryRepository {
         });
     }
 
-    /**
-     * Fetch breweries by state/province
-     */
+    // Fetch breweries by state from API.
     public void fetchBreweriesByState(String state, int perPage) {
         api.filterBreweries(null, state, null, null, perPage).enqueue(new Callback<List<BreweryEntity>>() {
             @Override
@@ -138,9 +118,7 @@ public class BreweryRepository {
         });
     }
 
-    /**
-     * Fetch breweries by type
-     */
+    // Fetch breweries by type from API.
     public void fetchBreweriesByType(String type, int perPage) {
         api.filterBreweries(null, null, null, type, perPage).enqueue(new Callback<List<BreweryEntity>>() {
             @Override
@@ -160,9 +138,7 @@ public class BreweryRepository {
         });
     }
 
-    /**
-     * Fetch breweries by state AND type
-     */
+    // Fetch breweries by state + type from API.
     public void fetchBreweriesByStateAndType(String state, String type, int perPage) {
         api.filterBreweries(null, state, null, type, perPage).enqueue(new Callback<List<BreweryEntity>>() {
             @Override
@@ -182,14 +158,12 @@ public class BreweryRepository {
         });
     }
 
-    /**
-     * Добавя/премахва от любими
-     */
+    // Callback for favorite toggle result.
     public interface ToggleFavoriteCallback {
         void onComplete(boolean newState);
     }
 
-    // Backwards-compatible: keep original method but forward to new one without callback
+    // Keep old method and forward to callback version.
     public void toggleFavorite(BreweryEntity brewery) {
         toggleFavorite(brewery, null);
     }
@@ -199,20 +173,20 @@ public class BreweryRepository {
             try {
                 Log.d(TAG, "toggleFavorite called for: " + brewery.getName() + " (ID: " + brewery.getId() + ")");
 
-                // First, ensure the brewery exists in the database
+                // Make sure brewery exists locally before toggle.
                 BreweryEntity existingBrewery = breweryDao.getAleByIdSync(brewery.getId());
 
                 boolean resultingState = false;
 
                 if (existingBrewery == null) {
-                    // Brewery doesn't exist in DB yet, insert it first
+                    // First time seen in local DB.
                     Log.d(TAG, "Brewery not in DB, inserting first...");
-                    brewery.setFavorite(true); // Mark as favorite
+                    brewery.setFavorite(true);
                     breweryDao.insert(brewery);
                     Log.d(TAG, "Inserted brewery with favorite=true");
                     resultingState = true;
                 } else {
-                    // Brewery exists, toggle its favorite status
+                    // Flip favorite state.
                     Log.d(TAG, "Brewery exists in DB with favorite=" + existingBrewery.isFavorite());
                     existingBrewery.setFavorite(!existingBrewery.isFavorite());
                     breweryDao.update(existingBrewery);
@@ -220,18 +194,18 @@ public class BreweryRepository {
                     resultingState = existingBrewery.isFavorite();
                 }
 
-                // Verify the update
+                // Re-read to confirm final state.
                 BreweryEntity verifyBrewery = breweryDao.getAleByIdSync(brewery.getId());
                 if (verifyBrewery != null) {
                     Log.d(TAG, "Verification - favorite state: " + verifyBrewery.isFavorite());
                     resultingState = verifyBrewery.isFavorite();
                 }
 
-                // Sync favorite change to Appwrite Database
+                // Sync favorite change for logged-in users.
                 String userId = appwriteService.getSavedUserId();
                 if (userId != null && !userId.startsWith("guest_")) {
                     if (resultingState) {
-                        // Added to favorites — sync to Appwrite
+                        // Added to favorites.
                         appwriteService.syncFavorite(userId, brewery, new AppwriteService.SimpleCallback() {
                             @Override
                             public void onSuccess() {
@@ -244,8 +218,7 @@ public class BreweryRepository {
                             }
                         });
                     } else {
-                        // Removed from favorites — could delete from Appwrite
-                        // For now, log it; full delete requires querying Appwrite for the document ID
+                        // Removed locally; cloud delete can be added later.
                         Log.d(TAG, "Favorite removed locally for: " + brewery.getName() + " (Appwrite delete not yet implemented)");
                     }
                 }
@@ -260,9 +233,7 @@ public class BreweryRepository {
         });
     }
 
-    /**
-     * Получава една пивоварна по ID
-     */
+    // Reads one brewery by id.
     public LiveData<BreweryEntity> getBreweryById(String id) {
         return breweryDao.getAleById(id);
     }

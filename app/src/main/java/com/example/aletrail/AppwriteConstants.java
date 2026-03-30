@@ -1,73 +1,15 @@
 package com.example.aletrail;
 
-/**
- * Constants for Appwrite Database and Collection IDs.
- *
- * These must match the collections created in the Appwrite Console.
- *
- * Collection: users
- *   - userId (string, 255)
- *   - email (string, 255)
- *   - displayName (string, 255)
- *   - authProvider (string, 50)
- *   - profileImageUrl (string, 500, optional)
- *   - totalStamps (integer)
- *   - totalVisits (integer)
- *   - totalBreweriesVisited (integer)
- *   - isPremium (boolean)
- *   NOTE: Appwrite auto-tracks $createdAt and $updatedAt - do not create custom createdAt attribute.
- *
- * Collection: favorites
- *   - userId (string, 255)
- *   - breweryId (string, 255)
- *   - breweryName (string, 500)
- *   - addedAt (datetime)
- *
- * Collection: loyalty_cards
- *   - userId (string, 255)
- *   - breweryId (string, 255)
- *   - stamps (integer)
- *   - maxStamps (integer)
- *   - active (boolean)
- *
- * Collection: visits
- *   - userId (string, 255)
- *   - breweryId (string, 255)
- *   - cardId (integer)
- *   - visitTimestamp (datetime)
- *   - stampAdded (boolean)
- *   - notes (string, 1000, optional)
- *   - latitude (point, optional)
- *   - longitude (point, optional)
- *
- * Collection: badges
- *   - userId (string, 255)
- *   - badgeType (string, 100)
- *   - badgeName (string, 255)
- *   - badgeDescription (string, 500)
- *   - badgeIcon (url)
- *   - requiredCount (integer)
- *   - earnedTimestamp (integer)
- *   - isEarned (boolean)
- *   - breweryId (string, 255, optional)
- *
- * Collection: beer_ratings
- *   - userId (string, 255)
- *   - breweryId (string, 255)
- *   - beerName (string, 255)
- *   - rating (double)
- *   - comment (string, 200, optional)
- *   - ratingTimestamp (integer)
- */
+// Централно място за ID-тата на Appwrite базата и колекциите.
 public final class AppwriteConstants {
 
     private AppwriteConstants() {
     }
 
-    // Database
+    // ID на базата в Appwrite.
     public static final String DATABASE_ID = "aletrail_db";
 
-    // Collections
+    // ID-та на колекциите за sync.
     public static final String COLLECTION_USERS = "users";
     public static final String COLLECTION_FAVORITES = "favorites";
     public static final String COLLECTION_LOYALTY_CARDS = "loyalty_cards";

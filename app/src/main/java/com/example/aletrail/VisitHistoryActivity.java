@@ -23,7 +23,7 @@ public class VisitHistoryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_visit_history);
 
-        // Hide status bar
+        // Скриваме горната системна лента.
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         WindowInsetsControllerCompat ic = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
         ic.hide(WindowInsetsCompat.Type.statusBars());
@@ -42,7 +42,7 @@ public class VisitHistoryActivity extends AppCompatActivity {
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
         });
 
-        // Handle system back button with fade transition
+        // Хардуерният back да ползва същата анимация.
         getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -54,7 +54,7 @@ public class VisitHistoryActivity extends AppCompatActivity {
         Database db = Database.getInstance(this);
 
         new Thread(() -> {
-            // Get brewery name
+            // Пробваме да покажем реалното име на пивоварната.
             String breweryName = breweryId;
             try {
                 BreweryEntity brewery = db.AleDAO().getAleByIdSync(breweryId);
@@ -79,7 +79,7 @@ public class VisitHistoryActivity extends AppCompatActivity {
                 recyclerView.setVisibility(View.VISIBLE);
 
                 SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy — HH:mm", Locale.getDefault());
-                // Use a simple adapter via string array
+                // Правим лесни за четене редове за списъка.
                 String[] items = new String[visits.size()];
                 for (int i = 0; i < visits.size(); i++) {
                     VisitEntity visit = visits.get(i);
@@ -93,7 +93,7 @@ public class VisitHistoryActivity extends AppCompatActivity {
                 listView.setAdapter(adapter);
                 listView.setDivider(null);
 
-                // Replace recyclerView with listView
+                // Заменяме placeholder RecyclerView с прост ListView.
                 recyclerView.setVisibility(View.GONE);
                 ((android.widget.LinearLayout) recyclerView.getParent()).addView(listView);
             });
@@ -101,6 +101,3 @@ public class VisitHistoryActivity extends AppCompatActivity {
     }
 
 }
-
-
-

@@ -20,7 +20,7 @@ public class RatingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ratings);
 
-        // Hide status bar
+        // Скриваме горната системна лента.
         androidx.core.view.WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         androidx.core.view.WindowInsetsControllerCompat ic =
                 androidx.core.view.WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
@@ -53,4 +53,3 @@ public class RatingsActivity extends AppCompatActivity {
         }
     }
 }
-

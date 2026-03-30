@@ -23,13 +23,10 @@ import io.appwrite.services.Databases;
 import kotlin.coroutines.EmptyCoroutineContext;
 import kotlinx.coroutines.BuildersKt;
 
-/**
- * Singleton wrapper around Appwrite Account and Databases services.
- * All SDK calls (Kotlin suspend functions) are bridged to Java via
- * BuildersKt.runBlocking on a background ExecutorService.
- */
+// Помощен service за Appwrite auth и sync към базата.
 public class AppwriteService {
 
+    // Основен singleton за Appwrite операции.
     private static final String TAG = "AppwriteService";
     private static final String PREFS_NAME = "aletrail_prefs";
     private static final String KEY_USER_ID = "appwrite_user_id";
@@ -93,9 +90,7 @@ public class AppwriteService {
     @SuppressWarnings("unchecked")
     public void createAccount(String email, String password, String name,
                               AuthCallback<User<Map<String, Object>>> callback) {
-        // Use a standard UUID as the userId â€” guaranteed to satisfy Appwrite's account
-        // userId rules: max 36 chars, only [a-zA-Z0-9._-], cannot start with special char.
-        // UUID format is xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (36 chars, hex + hyphens only).
+        // UUID покрива изискванията на Appwrite за userId.
         String uniqueId = java.util.UUID.randomUUID().toString();
         executor.execute(() -> {
             try {
@@ -214,22 +209,17 @@ public class AppwriteService {
         });
     }
 
-    /**
-     * Deletes the currently authenticated user's Appwrite Auth account
-     * by setting status to disabled, then deleting the session.
-     * Appwrite client SDK doesn't expose account.delete() â€” that's server-side only.
-     * We use account.updateStatus() to block the account, then clean up.
-     */
+    // Блокира акаунта, чисти данните и изкарва сесията.
     public void deleteAccount(AuthCallback<Void> callback) {
         executor.execute(() -> {
             try {
-                // Step 1: Delete all user documents from Appwrite Database
+                // 1) Трием документи на потребителя от Appwrite DB.
                 String userId = getSavedUserId();
                 if (userId != null && !userId.startsWith("guest_")) {
                     deleteAllUserDocuments(userId);
                 }
 
-                // Step 2: Block/disable the account via updateStatus()
+                // 2) Блокираме акаунта чрез updateStatus()
                 try {
                     BuildersKt.runBlocking(
                             EmptyCoroutineContext.INSTANCE,
@@ -246,7 +236,7 @@ public class AppwriteService {
                     Log.w(TAG, "updateStatus during account deletion: " + e.getMessage());
                 }
 
-                // Step 3: Delete the session (log out)
+                // 3) Трием текущата сесия (logout).
                 try {
                     BuildersKt.runBlocking(
                             EmptyCoroutineContext.INSTANCE,
@@ -263,7 +253,7 @@ public class AppwriteService {
                 }
 
                 clearPrefs();
-                Log.d(TAG, "Account deletion completed â€” local + remote data cleared");
+                Log.d(TAG, "Account deletion completed - local + remote data cleared");
                 callback.onSuccess(null);
             } catch (Exception e) {
                 Log.e(TAG, "Account deletion failed: " + e.getMessage(), e);
@@ -273,10 +263,7 @@ public class AppwriteService {
         });
     }
 
-    /**
-     * Deletes all documents belonging to a user from every Appwrite collection.
-     * Uses listDocuments with a userId filter, then deletes each document found.
-     */
+    // Трие всички Appwrite документи за даден user.
     private void deleteAllUserDocuments(String userId) {
         String[] collections = {
                 AppwriteConstants.COLLECTION_USERS,
@@ -289,7 +276,7 @@ public class AppwriteService {
 
         for (String collectionId : collections) {
             try {
-                // For the users collection, the document ID IS the userId
+                // В users колекцията docId е същото като userId.
                 if (collectionId.equals(AppwriteConstants.COLLECTION_USERS)) {
                     try {
                         BuildersKt.runBlocking(
@@ -314,7 +301,7 @@ public class AppwriteService {
                     continue;
                 }
 
-                // For other collections, query by userId and delete each document
+                // За другите колекции: filter по userId и трием всеки doc.
                 @SuppressWarnings("unchecked")
                 DocumentList<Map<String, Object>> result = (DocumentList<Map<String, Object>>) BuildersKt.runBlocking(
                         EmptyCoroutineContext.INSTANCE,
@@ -430,7 +417,7 @@ public class AppwriteService {
     @SuppressWarnings("unchecked")
     public void createDocument(String collectionId, String documentId,
                                Map<String, Object> data, DocumentCallback callback) {
-        // Build document-level permissions so the owning user can read/update/delete
+        // Добавяме user permissions, когато има логнат потребител.
         List<String> permissions = buildUserPermissions();
         Log.d(TAG, "createDocument: collection=" + collectionId
                 + ", docId=" + documentId
@@ -461,7 +448,7 @@ public class AppwriteService {
                 String errorMsg = extractErrorMessage(e);
                 Log.e(TAG, "Create document failed in " + collectionId
                         + " (docId=" + documentId + "): " + errorMsg, e);
-                // Log the full cause chain for debugging
+                // Подробен лог за грешка от Appwrite.
                 Throwable cause = e.getCause();
                 if (cause instanceof AppwriteException) {
                     AppwriteException ae = (AppwriteException) cause;
@@ -507,7 +494,7 @@ public class AppwriteService {
     @SuppressWarnings("unchecked")
     public void updateDocument(String collectionId, String documentId,
                                Map<String, Object> data, DocumentCallback callback) {
-        // Re-apply user permissions to ensure they are preserved on update
+        // Пускаме пак permissions, за да не изгубим достъп след update.
         List<String> permissions = buildUserPermissions();
         executor.execute(() -> {
             try {
@@ -575,7 +562,7 @@ public class AppwriteService {
         data.put("stampAdded", visit.isStampAdded());
         String notes = visit.getNotes();
         data.put("notes", (notes != null && !notes.isEmpty()) ? notes : null);
-        // Appwrite "point" type expects a list: [longitude, latitude]
+        // Appwrite point очаква списък: [longitude, latitude].
         if (visit.getLatitude() != 0.0 || visit.getLongitude() != 0.0) {
             data.put("latitude", Arrays.asList(visit.getLongitude(), visit.getLatitude()));
             data.put("longitude", Arrays.asList(visit.getLongitude(), visit.getLatitude()));
@@ -660,21 +647,21 @@ public class AppwriteService {
         data.put("badgeType", badge.getBadgeType());
         data.put("badgeName", badge.getBadgeName() != null ? badge.getBadgeName() : "");
         data.put("badgeDescription", badge.getBadgeDescription() != null ? badge.getBadgeDescription() : "");
-        // badgeIcon is a URL type in Appwrite â€” must be a valid URL or empty
+        // badgeIcon е URL тип в Appwrite.
         String icon = badge.getBadgeIcon();
         if (icon != null && !icon.isEmpty() && !icon.startsWith("http")) {
-            // Convert non-URL icon identifiers to a placeholder URL
+            // Ако е custom идентификатор, правим placeholder URL.
             icon = "https://aletrail.app/badges/" + icon;
         }
         data.put("badgeIcon", icon != null && !icon.isEmpty() ? icon : "https://aletrail.app/badges/default");
         data.put("requiredCount", badge.getRequiredCount());
         data.put("earnedTimestamp", badge.getEarnedTimestamp());
         data.put("isEarned", badge.isEarned());
-        // breweryId is nullable in Appwrite â€” send null, not empty string
+        // breweryId може да е null в схемата.
         data.put("breweryId", badge.getBreweryId() != null && !badge.getBreweryId().isEmpty()
                 ? badge.getBreweryId() : null);
 
-        // Use deterministic doc ID so updates don't create duplicates
+        // Стабилно docId, за да няма дублирани badge документи.
         String docId = badge.getUserId() + "_" + badge.getBadgeType();
         docId = docId.replaceAll("[^a-zA-Z0-9._-]", "_");
         if (docId.length() > 36) {
@@ -683,7 +670,7 @@ public class AppwriteService {
 
         final String finalDocId = docId;
 
-        // Try update first, create if doesn't exist
+        // Първо update, после create ако не съществува.
         updateDocument(AppwriteConstants.COLLECTION_BADGES, finalDocId, data, new DocumentCallback() {
             @Override
             public void onSuccess(Document<Map<String, Object>> document) {
@@ -692,7 +679,7 @@ public class AppwriteService {
             }
             @Override
             public void onError(String message) {
-                // Doc doesn't exist yet, create it
+                // Ако doc липсва, създаваме го.
                 createDocument(AppwriteConstants.COLLECTION_BADGES, finalDocId, data, new DocumentCallback() {
                     @Override
                     public void onSuccess(Document<Map<String, Object>> document) {
@@ -716,14 +703,12 @@ public class AppwriteService {
                 + ", email=" + user.getEmail()
                 + ", name=" + user.getDisplayName());
         Map<String, Object> data = new HashMap<>();
-        // Core required fields - these MUST exist in your Appwrite users collection
+        // Основни полета, които трябва да съществуват в users колекцията.
         data.put("userId", user.getUserId());
         data.put("email", user.getEmail() != null ? user.getEmail() : "");
         data.put("displayName", user.getDisplayName() != null ? user.getDisplayName() : "");
-        // NOTE: Do NOT send "createdAt" - Appwrite already tracks $createdAt automatically.
-        // Only add optional/stats fields if they exist in your Appwrite collection.
-        // If any of these cause "Unknown attribute" errors, remove them here
-        // or add the missing attribute in Appwrite Console.
+        // Не пращаме createdAt, защото Appwrite пази $createdAt.
+        // Опционалните полета трябва да съществуват в схемата.
         data.put("authProvider", user.getAuthProvider() != null ? user.getAuthProvider() : "email");
         String imgUrl = user.getProfileImageUrl();
         data.put("profileImageUrl", (imgUrl != null && !imgUrl.isEmpty()) ? imgUrl : null);
@@ -742,14 +727,14 @@ public class AppwriteService {
         createDocument(AppwriteConstants.COLLECTION_USERS, user.getUserId(), data, new DocumentCallback() {
             @Override
             public void onSuccess(Document<Map<String, Object>> document) {
-                Log.d(TAG, "syncUserProfile SUCCESS â€” document created: " + document.getId());
+                Log.d(TAG, "syncUserProfile SUCCESS - document created: " + document.getId());
                 if (callback != null) callback.onSuccess();
             }
             @Override
             public void onError(String message) {
                 Log.e(TAG, "syncUserProfile createDocument FAILED: " + message);
                 if (message != null && message.contains("already exists")) {
-                    Log.d(TAG, "syncUserProfile â€” document already exists, trying update...");
+                    Log.d(TAG, "syncUserProfile - document already exists, trying update...");
                     updateDocument(AppwriteConstants.COLLECTION_USERS, user.getUserId(), data,
                             new DocumentCallback() {
                                 @Override
@@ -770,32 +755,23 @@ public class AppwriteService {
         });
     }
 
-    /**
-     * Builds document-level permissions for the currently authenticated user.
-     * This ensures the user can read, update, and delete their own documents.
-     * Appwrite permission format: "permission(\"role\")"
-     * If no user is logged in, returns an empty list (collection-level permissions apply).
-     */
+    // Правим permissions за текущия логнат user.
     private List<String> buildUserPermissions() {
         String userId = getSavedUserId();
         if (userId != null && !userId.startsWith("guest_")) {
             String userRole = "user:" + userId;
-            // Appwrite v1.4+ permissions: read, update, delete, create ” NOT "write"
+            // Използваме read/update/delete.
             return Arrays.asList(
                     "read(\"" + userRole + "\")",
                     "update(\"" + userRole + "\")",
                     "delete(\"" + userRole + "\")"
             );
         }
-        // Fallback: no document-level permissions (relies on collection settings)
+        // Ако няма логнат user, разчитаме на collection permissions.
         return new ArrayList<>();
     }
 
-    /**
-     * Converts a Java epoch-millis timestamp to an ISO 8601 string
-     * that Appwrite datetime fields expect.
-     * Format: "2025-03-05T12:30:00.000+00:00"
-     */
+    // Конвертира epoch millis към ISO8601.
     private String toIso8601(long epochMillis) {
         if (epochMillis <= 0) {
             epochMillis = System.currentTimeMillis();
@@ -816,10 +792,7 @@ public class AppwriteService {
         return e.getMessage() != null ? e.getMessage() : "Unknown error";
     }
 
-    /**
-     * Checks if the current user's email is verified.
-     * Must be called from a background thread.
-     */
+    // Проверка дали имейлът е верифициран.
     @SuppressWarnings("unchecked")
     public boolean isEmailVerified() {
         try {
@@ -854,22 +827,7 @@ public class AppwriteService {
         }
     }
 
-    /**
-     * Sends a verification email to the current user.
-     *
-     * The URL passed to createVerification MUST be a valid HTTPS URL.
-     * Appwrite appends ?userId=...&secret=... to it.
-     *
-     * For full verification flow:
-     * 1. Host docs/verify.html on GitHub Pages (or any HTTPS host)
-     * 2. Update appwrite_verify_url in strings.xml to that HTTPS URL
-     * 3. The page redirects to aletrail://verify?userId=...&secret=...
-     * 4. The app's deep link handler calls completeEmailVerification()
-     *
-     * Current fallback: uses Appwrite endpoint URL — email IS sent,
-     * but clicking the link won't auto-verify (shows JSON instead).
-     * User can check status manually in-app.
-     */
+    // Праща verify имейл към текущия профил.
     public void sendVerificationEmail(SimpleCallback callback) {
         executor.execute(() -> {
             try {
@@ -891,9 +849,7 @@ public class AppwriteService {
         });
     }
 
-    /**
-     * Completes email verification using the userId and secret from the deep link.
-     */
+    // Завършва verify процеса от deep link параметри.
     public void completeEmailVerification(String userId, String secret, SimpleCallback callback) {
         executor.execute(() -> {
             try {
@@ -916,11 +872,3 @@ public class AppwriteService {
         });
     }
 }
-
-
-
-
-
-
-
-

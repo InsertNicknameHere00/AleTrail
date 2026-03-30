@@ -11,9 +11,7 @@ import java.util.UUID;
 
 public class QRCodeService {
 
-    /**
-     * Generates a QR code Bitmap from any string value.
-     */
+    // Прави QR bitmap от подаден текст.
     public static Bitmap generateQRCodeBitmap(String qrValue, int width, int height) {
         QRCodeWriter writer = new QRCodeWriter();
         try {
@@ -32,37 +30,27 @@ public class QRCodeService {
         }
     }
 
-    // ── Brewery Stamp QR (displayed at brewery / generated in-app) ──
+    // Методите отдолу са за brewery stamp QR стойности.
 
-    /**
-     * Generates a stamp QR code value for a brewery.
-     * Format: ALETRAIL_STAMP:breweryId:secretToken
-     * The brewery displays this QR; users scan it to auto-stamp their card.
-     */
+    // Генерира stamp стойността, която слагаме в QR.
     public static String generateBreweryStampQR(String breweryId, String secretToken) {
         return "ALETRAIL_STAMP:" + breweryId + ":" + secretToken;
     }
 
-    /**
-     * Generates a stamp QR with an auto-generated token.
-     */
+    // Помощен метод, ако искаме auto token.
     public static String generateBreweryStampQR(String breweryId) {
         String token = UUID.randomUUID().toString().substring(0, 8);
         return generateBreweryStampQR(breweryId, token);
     }
 
-    /**
-     * Validates a stamp QR code value.
-     */
+    // Проверява дали сканираният текст е валиден stamp QR.
     public static boolean isValidStampQR(String qrValue) {
         return qrValue != null
                 && qrValue.startsWith("ALETRAIL_STAMP:")
                 && qrValue.split(":").length == 3;
     }
 
-    /**
-     * Extracts breweryId from a stamp QR code.
-     */
+    // Вади brewery id от валиден stamp QR.
     public static String extractBreweryIdFromStampQR(String qrValue) {
         if (isValidStampQR(qrValue)) {
             return qrValue.split(":")[1];
@@ -70,9 +58,7 @@ public class QRCodeService {
         return null;
     }
 
-    /**
-     * Extracts the secret token from a stamp QR code.
-     */
+    // Вади token от валиден stamp QR.
     public static String extractTokenFromStampQR(String qrValue) {
         if (isValidStampQR(qrValue)) {
             return qrValue.split(":")[2];
@@ -80,4 +66,3 @@ public class QRCodeService {
         return null;
     }
 }
-

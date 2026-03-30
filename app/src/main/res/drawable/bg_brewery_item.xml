@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <gradient
-        android:startColor="#2D1F0A"
-        android:centerColor="#3D2F1A"
-        android:endColor="#2D1F0A"
+        android:startColor="@color/ale_bg_card"
+        android:centerColor="@color/ale_bg_card_lighter"
+        android:endColor="@color/ale_bg_card"
         android:angle="135" />
     <corners android:radius="16dp" />
 </shape>
-

@@ -5,174 +5,142 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    app:cardCornerRadius="20dp"
-    app:cardElevation="8dp">
+    style="@style/AleTrailCardSurfaceLarge">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:background="@drawable/bg_loyalty_card"
-        android:padding="20dp">
+        android:padding="16dp">
 
-        <!-- Card Header -->
-        <TextView
-            android:id="@+id/cardTitle"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/loyalty_card_title"
-            android:textColor="?attr/aleTextSecondary"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:letterSpacing="0.15"
-            android:textAllCaps="true"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            android:orientation="horizontal"
+            android:baselineAligned="false"
+            android:gravity="center_vertical">
 
-        <!-- Brewery Name on Card -->
+            <TextView
+                android:id="@+id/cardTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/loyalty_card_title"
+                android:textAllCaps="true"
+                android:textColor="?attr/aleTextHint"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/stampCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_brewery_item"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:textColor="?attr/aleGold"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="3/100" />
+        </LinearLayout>
+
         <TextView
             android:id="@+id/cardBreweryName"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
+            android:ellipsize="end"
+            android:maxLines="2"
             android:textColor="?attr/aleTextPrimary"
             android:textSize="22sp"
             android:textStyle="bold"
-            android:maxLines="2"
-            android:ellipsize="end"
-            tools:text="Crafty Brewery Co."
-            app:layout_constraintTop_toBottomOf="@id/cardTitle"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            tools:text="Crafty Brewery Co." />
 
-        <!-- Stamp Progress Section -->
         <TextView
             android:id="@+id/stampsLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="12dp"
             android:text="@string/label_stamps_collected"
-            android:textColor="?attr/aleTextHint"
-            android:textSize="12sp"
-            android:textStyle="bold"
             android:textAllCaps="true"
-            android:letterSpacing="0.1"
-            app:layout_constraintTop_toBottomOf="@id/cardBreweryName"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:textColor="?attr/aleTextHint"
+            android:textSize="11sp"
+            android:textStyle="bold" />
 
-        <!-- Stamps Counter -->
-        <TextView
-            android:id="@+id/stampCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="?attr/aleGold"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            tools:text="3/100"
-            app:layout_constraintTop_toTopOf="@id/stampsLabel"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-        <!-- Progress Bar -->
         <ProgressBar
             android:id="@+id/stampProgressBar"
             style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="8dp"
             android:layout_marginTop="8dp"
-            android:progress="30"
             android:max="100"
-            android:progressDrawable="@drawable/progress_stamps"
-            app:layout_constraintTop_toBottomOf="@id/stampsLabel"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            android:progress="30"
+            android:progressDrawable="@drawable/progress_stamps" />
 
-        <!-- Stamp Emoji Display (current discount cycle — 10 stamps) -->
         <TextView
             android:id="@+id/stampEmojis"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:textSize="20sp"
-            android:letterSpacing="0.05"
+            android:layout_marginTop="8dp"
             android:gravity="center"
-            tools:text="⭐⭐⭐⚪⚪⚪⚪⚪⚪⚪"
-            app:layout_constraintTop_toBottomOf="@id/stampProgressBar"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            android:letterSpacing="0.03"
+            android:textSize="20sp"
+            tools:text="⭐⭐⭐⚪⚪⚪⚪⚪⚪⚪" />
 
-        <!-- Discount Text -->
         <TextView
             android:id="@+id/discountText"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:textColor="#81C784"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:textColor="?attr/aleDiscountGreen"
             android:textSize="13sp"
             android:textStyle="bold"
-            android:gravity="center"
             android:visibility="gone"
             tools:text="Current Discount: 10%"
-            tools:visibility="visible"
-            app:layout_constraintTop_toBottomOf="@id/stampEmojis"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            tools:visibility="visible" />
 
-        <!-- Card Footer Actions -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
             android:orientation="horizontal"
-            android:gravity="center"
-            app:layout_constraintTop_toBottomOf="@id/discountText"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
+            android:baselineAligned="false">
 
             <Button
                 android:id="@+id/shareButton"
-                style="?attr/materialButtonOutlinedStyle"
+                style="@style/AleTrail.Button.Surface"
                 android:layout_width="0dp"
                 android:layout_height="40dp"
-                android:layout_marginEnd="8dp"
                 android:layout_weight="1"
+                android:layout_marginEnd="4dp"
                 android:text="@string/button_share"
-                android:textAllCaps="true"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:backgroundTint="#33FFFFFF" />
+                android:textSize="11sp" />
 
             <Button
                 android:id="@+id/viewHistoryButton"
-                style="?attr/materialButtonOutlinedStyle"
+                style="@style/AleTrail.Button.Surface"
                 android:layout_width="0dp"
                 android:layout_height="40dp"
+                android:layout_weight="1"
                 android:layout_marginStart="4dp"
                 android:layout_marginEnd="4dp"
-                android:layout_weight="1"
                 android:text="@string/button_history"
-                android:textAllCaps="true"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:backgroundTint="#33FFFFFF" />
+                android:textSize="11sp" />
 
             <Button
                 android:id="@+id/deleteCardButton"
-                style="?attr/materialButtonOutlinedStyle"
+                style="@style/AleTrail.Button.Outline"
                 android:layout_width="0dp"
                 android:layout_height="40dp"
-                android:layout_marginStart="4dp"
                 android:layout_weight="1"
+                android:layout_marginStart="4dp"
                 android:text="@string/dialog_delete"
-                android:textAllCaps="true"
-                android:textColor="#FF8A80"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:backgroundTint="#33FF8A80" />
+                android:textColor="?attr/aleDanger"
+                android:textSize="11sp" />
         </LinearLayout>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
+    </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

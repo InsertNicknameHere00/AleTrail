@@ -68,7 +68,7 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        // Hide system bars for immersive experience
+        // Скриваме системната лента за по-чист екран.
         androidx.core.view.WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         androidx.core.view.WindowInsetsControllerCompat ic = androidx.core.view.WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
         ic.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars());
@@ -93,7 +93,7 @@ public class ProfileActivity extends AppCompatActivity {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         Uri imageUri = result.getData().getData();
                         if (imageUri != null) {
-                            // Take persistable permission so the URI survives app restarts
+                            // Пазим permission-а, за да работи URI и след рестарт.
                             try {
                                 getContentResolver().takePersistableUriPermission(
                                         imageUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -134,7 +134,7 @@ public class ProfileActivity extends AppCompatActivity {
         guestBanner = findViewById(R.id.guestBanner);
         profileLoading = findViewById(R.id.profileLoading);
 
-        // Theme toggle
+        // Toggle за theme mode.
         com.google.android.material.switchmaterial.SwitchMaterial darkModeSwitch = findViewById(R.id.darkModeSwitch);
         android.content.SharedPreferences prefs = getSharedPreferences("aletrail_prefs", MODE_PRIVATE);
         boolean isDark = prefs.getBoolean("dark_mode", true);
@@ -146,13 +146,13 @@ public class ProfileActivity extends AppCompatActivity {
                             : androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO);
         });
 
-        // Email verification
+        // Email verification блок.
         android.widget.LinearLayout verifyEmailRow = findViewById(R.id.verifyEmailRow);
         android.widget.Button verifyEmailButton = findViewById(R.id.verifyEmailButton);
         android.widget.TextView verifyEmailStatus = findViewById(R.id.verifyEmailStatus);
         if (!isGuest) {
             verifyEmailRow.setVisibility(View.VISIBLE);
-            // Check verification status via Appwrite
+            // Проверяваме verify статуса през Appwrite
             new Thread(() -> {
                 try {
                     boolean verified = appwriteService.isEmailVerified();
@@ -217,25 +217,25 @@ public class ProfileActivity extends AppCompatActivity {
         avatarEditButton.setOnClickListener(v -> showPhotoChooser());
 
         signInNowButton.setOnClickListener(v -> {
-            // Clear guest session and go to login
+            // Чистим guest сесията и отиваме към login.
             clearSessionAndGoToLogin();
         });
 
-        // My Reviews
+        // Моите ревюта
         findViewById(R.id.myReviewsButton).setOnClickListener(v ->
                 startActivity(new Intent(this, RatingsActivity.class)));
 
-        // Create Business
+        // Моят бизнес
         findViewById(R.id.createBusinessButton).setOnClickListener(v ->
                 startActivity(new Intent(this, CreateBusinessActivity.class)));
 
-        // Favorites Map
+        // Карта с favorites
         findViewById(R.id.viewFavoritesMapButton).setOnClickListener(v ->
                 createFavoritesMap());
     }
 
     private void loadProfile() {
-        // Load from shared prefs first (instant)
+        // Първо зареждаме от shared prefs (бързо).
         String savedName = appwriteService.getSavedUserName();
         String savedEmail = appwriteService.getSavedUserEmail();
 
@@ -249,7 +249,7 @@ public class ProfileActivity extends AppCompatActivity {
             profileEmail.setText(R.string.profile_guest_mode);
         }
 
-        // Load from Room for member since date
+        // После зареждаме от Room за дата и локални данни.
         if (currentUserId != null) {
             LiveData<UserEntity> userLiveData = database.userDAO().getUserById(currentUserId);
             userLiveData.observe(this, user -> {
@@ -261,7 +261,7 @@ public class ProfileActivity extends AppCompatActivity {
                     if (user.getEmail() != null) {
                         profileEmail.setText(user.getEmail());
                     }
-                    // Load profile image if available
+                    // Зареждаме profile image, ако има.
                     loadAvatarImage(user.getProfileImageUrl(), user.getDisplayName());
 
                     SimpleDateFormat sdf = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
@@ -271,7 +271,7 @@ public class ProfileActivity extends AppCompatActivity {
             });
         }
 
-        // If not guest, also refresh from Appwrite
+        // Ако не е guest, правим refresh и от Appwrite.
         if (!isGuest) {
             appwriteService.getCurrentUser(new AppwriteService.AuthCallback<User<Map<String, Object>>>() {
                 @Override
@@ -285,7 +285,7 @@ public class ProfileActivity extends AppCompatActivity {
 
                 @Override
                 public void onError(String message) {
-                    // Use cached data, already loaded above
+                    // Ако има грешка, оставаме с кешираните данни.
                 }
             });
         }
@@ -325,7 +325,7 @@ public class ProfileActivity extends AppCompatActivity {
         appwriteService.updateName(newName, new AppwriteService.AuthCallback<User<Map<String, Object>>>() {
             @Override
             public void onSuccess(User<Map<String, Object>> user) {
-                // Also update Room - preserve existing data
+                // Обновяваме и Room, като пазим наличните данни.
                 new Thread(() -> {
                     UserEntity roomUser = database.userDAO().getUserByIdSync(currentUserId);
                     if (roomUser == null) {
@@ -335,10 +335,10 @@ public class ProfileActivity extends AppCompatActivity {
                     roomUser.setEmail(user.getEmail());
                     roomUser.setDisplayName(user.getName());
                     roomUser.setAuthProvider("email");
-                    // profileImageUrl is preserved from the existing roomUser
+                    // profileImageUrl си остава от текущия Room user.
                     database.userDAO().insert(roomUser);
 
-                    // Also sync updated profile to Appwrite Database
+                    // Sync-ваме обновения profile и към Appwrite DB.
                     appwriteService.syncUserProfile(roomUser, new AppwriteService.SimpleCallback() {
                         @Override
                         public void onSuccess() {
@@ -396,15 +396,14 @@ public class ProfileActivity extends AppCompatActivity {
 
             @Override
             public void onError(String message) {
-                // Even on error, clear local session
+                // Дори при грешка, чистим локалната сесия.
                 runOnUiThread(() -> clearSessionAndGoToLogin());
             }
         });
     }
 
     private void clearSessionAndGoToLogin() {
-        // Clear session FIRST so LoginActivity doesn't see is_logged_in=true
-        // and immediately redirect back to MainActivity
+        // Чистим сесията първо, за да няма auto return към Main.
         appwriteService.clearSession();
 
         Intent intent = new Intent(this, LoginActivity.class);
@@ -431,7 +430,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         final String userId = currentUserId;
 
-        // Step 1: Delete all local Room data for this user on a background thread
+        // Първо трием локалните данни в worker thread.
         new Thread(() -> {
             try {
                 database.userDAO().deleteByUserId(userId);
@@ -445,7 +444,7 @@ public class ProfileActivity extends AppCompatActivity {
                 Log.e("ProfileActivity", "Error deleting local data: " + e.getMessage());
             }
 
-            // Step 2: Delete Appwrite data + session
+            // После пробваме да изтрием cloud акаунта/сесията.
             appwriteService.deleteAccount(new AppwriteService.AuthCallback<Void>() {
                 @Override
                 public void onSuccess(Void result) {
@@ -459,7 +458,7 @@ public class ProfileActivity extends AppCompatActivity {
                 @Override
                 public void onError(String message) {
                     Log.e("ProfileActivity", "Appwrite account deletion error: " + message);
-                    // Even on Appwrite error, local data is already gone — redirect to login
+                    // Ако cloud delete падне, продължаваме (локалното вече е изтрито).
                     runOnUiThread(() -> {
                         Toast.makeText(ProfileActivity.this,
                                 R.string.profile_delete_success, Toast.LENGTH_SHORT).show();
@@ -478,10 +477,7 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Loads a profile image into the avatar circle via Glide.
-     * If imageUrl is null or empty, falls back to the initial letter.
-     */
+    // Зареждаме profile photo, иначе показваме буква.
     private void loadAvatarImage(String imageUrl, String fallbackName) {
         if (imageUrl != null && !imageUrl.isEmpty()) {
             avatarImage.setVisibility(View.VISIBLE);
@@ -497,9 +493,7 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Shows a chooser dialog: Take Photo / Choose from Gallery / Remove Photo.
-     */
+    // Прост chooser: камера, галерия или махане на снимка.
     private void showPhotoChooser() {
         String[] options = {
                 getString(R.string.profile_photo_take),
@@ -557,9 +551,7 @@ public class ProfileActivity extends AppCompatActivity {
         galleryLauncher.launch(intent);
     }
 
-    /**
-     * Saves the selected profile image URI to Room and syncs to Appwrite.
-     */
+    // Пазим избраната снимка локално и sync-ваме при логнат user.
     private void saveProfileImage(String imageUri) {
         loadAvatarImage(imageUri, appwriteService.getSavedUserName());
 
@@ -570,7 +562,7 @@ public class ProfileActivity extends AppCompatActivity {
                 database.userDAO().update(user);
                 Log.d("ProfileActivity", "Profile image saved to Room: " + imageUri);
 
-                // Sync to Appwrite
+                // Качваме image URL и в Appwrite.
                 if (!isGuest) {
                     appwriteService.syncUserProfile(user, new AppwriteService.SimpleCallback() {
                         @Override
@@ -588,9 +580,7 @@ public class ProfileActivity extends AppCompatActivity {
         }).start();
     }
 
-    /**
-     * Removes the profile image and reverts to the initial letter avatar.
-     */
+    // Махаме снимката и връщаме аватар с буква.
     private void removeProfileImage() {
         avatarImage.setVisibility(View.GONE);
         avatarInitial.setVisibility(View.VISIBLE);
@@ -620,9 +610,7 @@ public class ProfileActivity extends AppCompatActivity {
         }).start();
     }
 
-    /**
-     * Creates a Cartes.io map from the user's favorite breweries.
-     */
+    // Създаваме Cartes карта от favorite пивоварните.
     private void createFavoritesMap() {
         Toast.makeText(this, R.string.map_creating, Toast.LENGTH_SHORT).show();
 
@@ -634,7 +622,7 @@ public class ProfileActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Create map via Cartes API
+                // Първо създаваме map обект в Cartes.
                 String userName = appwriteService.getSavedUserName();
                 String mapTitle = (userName != null ? userName : "AleTrail") + "'s Favorites";
                 CartesModels.CreateMapRequest req = new CartesModels.CreateMapRequest(
@@ -696,7 +684,7 @@ public class ProfileActivity extends AppCompatActivity {
 
                 int addedCount = 0;
 
-                // Add markers for each favorite
+                // Добавяме marker за всеки favorite с валидни координати.
                 for (BreweryEntity brewery : favorites) {
                     if (brewery.getLatitude() != null && brewery.getLongitude() != null) {
                         String desc = brewery.getName() != null ? brewery.getName() : "Brewery";
@@ -729,7 +717,7 @@ public class ProfileActivity extends AppCompatActivity {
                 final String mapId = mapUuid;
                 runOnUiThread(() -> {
                     Toast.makeText(this, getString(R.string.map_created, count), Toast.LENGTH_SHORT).show();
-                    // Open map in browser
+                    // Отваряме готовата карта в браузър.
                     String url = "https://app.cartes.io/maps/" + mapId;
                     Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                     startActivity(browserIntent);

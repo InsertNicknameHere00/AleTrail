@@ -15,11 +15,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/**
- * Allows a user to create a custom "business" brewery that appears
- * alongside API breweries in the brewery list. Also generates a
- * stamp QR code for the business.
- */
+// Екран за добавяне на custom бизнес пивоварна + QR за печати.
 public class CreateBusinessActivity extends AppCompatActivity {
 
     private TextInputEditText nameInput, typeInput, streetInput, cityInput,
@@ -33,12 +29,12 @@ public class CreateBusinessActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_business);
 
-        // Immersive mode
+        // Скриваме системната лента за по-чист екран.
         androidx.core.view.WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-        androidx.core.view.WindowInsetsControllerCompat ic =
+        androidx.core.view.WindowInsetsControllerCompat insetsController =
                 androidx.core.view.WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
-        ic.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars());
-        ic.setSystemBarsBehavior(
+        insetsController.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars());
+        insetsController.setSystemBarsBehavior(
                 androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
 
         database = Database.getInstance(this);
@@ -71,7 +67,7 @@ public class CreateBusinessActivity extends AppCompatActivity {
         String type = getText(typeInput);
         if (type.isEmpty()) type = "micro";
 
-        // Generate a unique ID for custom brewery (prefix with "custom_")
+        // Правим уникално ID за custom пивоварната.
         String breweryId = "custom_" + UUID.randomUUID().toString().substring(0, 12);
 
         BreweryEntity brewery = new BreweryEntity();
@@ -120,4 +116,3 @@ public class CreateBusinessActivity extends AppCompatActivity {
         return input.getText() != null ? input.getText().toString().trim() : "";
     }
 }
-
