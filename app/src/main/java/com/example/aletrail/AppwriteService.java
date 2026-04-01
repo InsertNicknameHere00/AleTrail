@@ -117,25 +117,63 @@ public class AppwriteService {
     public void login(String email, String password, AuthCallback<Session> callback) {
         executor.execute(() -> {
             try {
-                Object result = BuildersKt.runBlocking(
-                        EmptyCoroutineContext.INSTANCE,
-                        (scope, cont) -> {
-                            try {
-                                return account.createEmailPasswordSession(email, password, cont);
-                            } catch (Exception e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
-                );
-                Session session = (Session) result;
+                Session session = createEmailPasswordSession(email, password);
                 fetchAndSaveCurrentUser();
                 Log.d(TAG, "Login success, session: " + session.getId());
                 callback.onSuccess(session);
-            } catch (Exception e) {
-                Log.e(TAG, "Login failed: " + e.getMessage(), e);
-                callback.onError(extractErrorMessage(e));
+            } catch (Exception firstError) {
+                String firstMessage = extractErrorMessage(firstError);
+
+                // Ако има активна сесия, трием я и пробваме пак веднъж.
+                if (firstMessage != null && firstMessage.toLowerCase().contains("session")
+                        && firstMessage.toLowerCase().contains("active")) {
+                    Log.w(TAG, "Active session detected during login, retrying after deleteSession(current)");
+                    try {
+                        BuildersKt.runBlocking(
+                                EmptyCoroutineContext.INSTANCE,
+                                (scope, cont) -> {
+                                    try {
+                                        return account.deleteSession("current", cont);
+                                    } catch (Exception e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }
+                        );
+
+                        Session retrySession = createEmailPasswordSession(email, password);
+                        fetchAndSaveCurrentUser();
+                        Log.d(TAG, "Login retry success, session: " + retrySession.getId());
+                        callback.onSuccess(retrySession);
+                        return;
+                    } catch (Exception retryError) {
+                        Log.e(TAG, "Login retry failed: " + retryError.getMessage(), retryError);
+                        callback.onError(extractErrorMessage(retryError));
+                        return;
+                    }
+                }
+
+                Log.e(TAG, "Login failed: " + firstError.getMessage(), firstError);
+                callback.onError(firstMessage);
             }
         });
+    }
+
+    private Session createEmailPasswordSession(String email, String password) {
+        try {
+            Object result = BuildersKt.runBlocking(
+                    EmptyCoroutineContext.INSTANCE,
+                    (scope, cont) -> {
+                        try {
+                            return account.createEmailPasswordSession(email, password, cont);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+            );
+            return (Session) result;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @SuppressWarnings("unchecked")

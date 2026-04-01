@@ -296,7 +296,7 @@
 
                 <Button
                     android:id="@+id/signInNowButton"
-                    style="@style/AleTrail.Button.Primary"
+                    style="@style/AleTrail.Button.Primary.DarkText"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:text="@string/btn_sign_in_now" />
@@ -393,62 +393,75 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Бързи action бутони. -->
-        <LinearLayout
+        <!-- Bottom actions card. -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/actionsCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:baselineAligned="false"
-            android:layout_marginBottom="16dp">
-
-            <Button
-                android:id="@+id/myReviewsButton"
-                style="@style/AleTrail.Button.Surface"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="6dp"
-                android:text="@string/ratings_title"
-                android:textSize="13sp" />
-
-            <Button
-                android:id="@+id/createBusinessButton"
-                style="@style/AleTrail.Button.Primary"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:layout_marginStart="6dp"
-                android:text="@string/business_title"
-                android:textSize="13sp" />
-        </LinearLayout>
-
-        <Button
-            android:id="@+id/viewFavoritesMapButton"
-            style="@style/AleTrail.Button.Surface"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
             android:layout_marginBottom="16dp"
-            android:text="@string/map_create_button"
-            android:textSize="14sp" />
+            style="@style/AleTrailCardSurfaceLarge">
 
-        <Button
-            android:id="@+id/saveProfileButton"
-            style="@style/AleTrail.Button.Primary"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginBottom="12dp"
-            android:text="@string/btn_save_profile"
-            android:textSize="16sp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
 
-        <Button
-            android:id="@+id/signOutButton"
-            style="@style/AleTrail.Button.Outline"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginBottom="24dp"
-            android:text="@string/btn_sign_out"
-            android:textColor="?attr/aleDanger"
-            android:textSize="16sp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:baselineAligned="false"
+                    android:layout_marginBottom="12dp">
+
+                    <Button
+                        android:id="@+id/myReviewsButton"
+                        style="@style/AleTrail.Button.Muted"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        android:text="@string/ratings_title"
+                        android:textSize="13sp" />
+
+                    <Button
+                        android:id="@+id/createBusinessButton"
+                        style="@style/AleTrail.Button.Muted"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        android:text="@string/business_title"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/viewFavoritesMapButton"
+                    style="@style/AleTrail.Button.Muted"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginBottom="12dp"
+                    android:text="@string/map_create_button"
+                    android:textSize="14sp" />
+
+                <Button
+                    android:id="@+id/saveProfileButton"
+                    style="@style/AleTrail.Button.Primary.DarkText"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginBottom="12dp"
+                    android:text="@string/btn_save_profile"
+                    android:textSize="16sp" />
+
+                <Button
+                    android:id="@+id/signOutButton"
+                    style="@style/AleTrail.Button.Muted"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="@string/btn_sign_out"
+                    android:textSize="16sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Spinner при profile действия. -->
         <ProgressBar

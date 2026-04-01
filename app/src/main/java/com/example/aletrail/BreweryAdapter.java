@@ -122,6 +122,14 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
             breweryIcon = itemView.findViewById(R.id.breweryIcon);
         }
 
+        private void applyFavoriteVisualState(boolean isFavorite) {
+            favoriteButton.setImageResource(isFavorite
+                    ? android.R.drawable.btn_star_big_on
+                    : android.R.drawable.btn_star_big_off);
+            int tint = isFavorite ? 0xFFFFC107 : 0xFF9AA0A6;
+            favoriteButton.setColorFilter(tint, android.graphics.PorterDuff.Mode.SRC_IN);
+        }
+
         public void bind(BreweryEntity brewery) {
             breweryName.setText(brewery.getName());
 
@@ -183,12 +191,8 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
                 removeFavoriteButton.setVisibility(View.GONE);
             }
 
-            // Update favorite button icon based on state
-            if (brewery.isFavorite()) {
-                favoriteButton.setImageResource(android.R.drawable.btn_star_big_on);
-            } else {
-                favoriteButton.setImageResource(android.R.drawable.btn_star_big_off);
-            }
+            // Различен цвят за favorite on/off.
+            applyFavoriteVisualState(brewery.isFavorite());
 
             itemView.setOnClickListener(v -> {
                 if (listener != null) listener.onBreweryClick(brewery);
@@ -196,11 +200,10 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
 
             favoriteButton.setOnClickListener(v -> {
                 if (listener != null) {
-                    // Toggle icon immediately for responsive feel
+                    // UI feedback веднага при toggle.
                     boolean newState = !brewery.isFavorite();
                     brewery.setFavorite(newState);
-                    favoriteButton.setImageResource(newState ?
-                            android.R.drawable.btn_star_big_on : android.R.drawable.btn_star_big_off);
+                    applyFavoriteVisualState(newState);
                     listener.onFavoriteClick(brewery);
                 }
             });

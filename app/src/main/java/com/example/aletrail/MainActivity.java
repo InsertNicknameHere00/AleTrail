@@ -60,6 +60,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView statsDiscountText;
     private ChipGroup typeFilterChipGroup;
     private View filterCard;
+    private View cardsEmptyState;
+    private View favoritesEmptyState;
+    private Button btnGoBreweriesFromCards;
+    private Button btnGoBreweriesFromFavorites;
 
     // Адаптери
     private BreweryAdapter breweryAdapter;
@@ -234,9 +238,15 @@ public class MainActivity extends AppCompatActivity {
         statsDiscountText = findViewById(R.id.statsDiscountText);
         typeFilterChipGroup = findViewById(R.id.typeFilterChipGroup);
         filterCard = findViewById(R.id.filterCard);
+        cardsEmptyState = findViewById(R.id.cardsEmptyState);
+        favoritesEmptyState = findViewById(R.id.favoritesEmptyState);
+        btnGoBreweriesFromCards = findViewById(R.id.btnGoBreweriesFromCards);
+        btnGoBreweriesFromFavorites = findViewById(R.id.btnGoBreweriesFromFavorites);
 
         // Държим filter-ите скрити по подразбиране.
         filterCard.setVisibility(View.GONE);
+        cardsEmptyState.setVisibility(View.GONE);
+        favoritesEmptyState.setVisibility(View.GONE);
     }
 
     private void setupRecyclerView() {
@@ -409,38 +419,54 @@ public class MainActivity extends AppCompatActivity {
                 case 0: // Пивоварни
                     recyclerView.setLayoutManager(new LinearLayoutManager(this));
                     recyclerView.setAdapter(breweryAdapter);
+                    recyclerView.setVisibility(View.VISIBLE);
+                    cardsEmptyState.setVisibility(View.GONE);
+                    favoritesEmptyState.setVisibility(View.GONE);
                     loadBreweries();
                     fabAddCard.hide();
                     searchInputLayout.setVisibility(View.VISIBLE);
                     filterCard.setVisibility(isFilterExpanded ? View.VISIBLE : View.GONE);
+                    fabFindNearby.show();
                     break;
                 case 1: // Моите карти
                     recyclerView.setLayoutManager(new LinearLayoutManager(this));
                     recyclerView.setAdapter(loyaltyCardAdapter);
+                    recyclerView.setVisibility(View.VISIBLE);
+                    cardsEmptyState.setVisibility(View.GONE);
+                    favoritesEmptyState.setVisibility(View.GONE);
                     loadUserCards();
                     loadBestDiscount(); // Обновяваме discount данните
                     fabAddCard.show();
                     searchInputLayout.setVisibility(View.GONE);
                     filterCard.setVisibility(View.GONE);
                     isFilterExpanded = false;
+                    fabFindNearby.hide();
                     break;
                 case 2: // Badges grid
                     recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
                     recyclerView.setAdapter(badgeAdapter);
+                    recyclerView.setVisibility(View.VISIBLE);
+                    cardsEmptyState.setVisibility(View.GONE);
+                    favoritesEmptyState.setVisibility(View.GONE);
                     loadBadges();
                     fabAddCard.hide();
                     searchInputLayout.setVisibility(View.GONE);
                     filterCard.setVisibility(View.GONE);
                     isFilterExpanded = false;
+                    fabFindNearby.hide();
                     break;
                 case 3: // Favorites
                     recyclerView.setLayoutManager(new LinearLayoutManager(this));
                     recyclerView.setAdapter(favoritesAdapter);
+                    recyclerView.setVisibility(View.VISIBLE);
+                    cardsEmptyState.setVisibility(View.GONE);
+                    favoritesEmptyState.setVisibility(View.GONE);
                     loadFavorites();
                     fabAddCard.hide();
                     searchInputLayout.setVisibility(View.GONE);
                     filterCard.setVisibility(View.GONE);
                     isFilterExpanded = false;
+                    fabFindNearby.hide();
                     break;
             }
             recyclerView.animate().alpha(1f).setDuration(200).start();
@@ -455,6 +481,9 @@ public class MainActivity extends AppCompatActivity {
             tabLayout.selectTab(tabLayout.getTabAt(0));
         });
         applyFilterButton.setOnClickListener(v -> applyFilters());
+
+        btnGoBreweriesFromCards.setOnClickListener(v -> tabLayout.selectTab(tabLayout.getTabAt(0)));
+        btnGoBreweriesFromFavorites.setOnClickListener(v -> tabLayout.selectTab(tabLayout.getTabAt(0)));
 
         // Показваме/скриваме compact филтъра от иконата в search
         searchInputLayout.setEndIconOnClickListener(v -> {
@@ -558,8 +587,13 @@ public class MainActivity extends AppCompatActivity {
         if (cardsLiveData == null) {
             cardsLiveData = loyaltyCardRepository.getUserCards(currentUserId);
             cardsLiveData.observe(this, cards -> {
-                if (cards != null) {
-                    loyaltyCardAdapter.setCards(cards);
+                java.util.List<LoyaltyCardEntity> safeCards = cards != null ? cards : new java.util.ArrayList<>();
+                loyaltyCardAdapter.setCards(safeCards);
+
+                if (currentTab == 1) {
+                    boolean empty = safeCards.isEmpty();
+                    cardsEmptyState.setVisibility(empty ? View.VISIBLE : View.GONE);
+                    recyclerView.setVisibility(empty ? View.GONE : View.VISIBLE);
                 }
             });
         }
@@ -587,14 +621,13 @@ public class MainActivity extends AppCompatActivity {
 
         favoritesLiveData = breweryRepository.getFavoriteBreweries();
         favoritesLiveData.observe(this, favorites -> {
-            android.util.Log.d("MainActivity", "Favorites observer triggered. Count: " + (favorites != null ? favorites.size() : "null"));
-            if (favorites != null) {
-                for (BreweryEntity brewery : favorites) {
-                    android.util.Log.d("MainActivity", "Favorite brewery: " + brewery.getName() + " (favorite=" + brewery.isFavorite() + ")");
-                }
-                favoritesAdapter.setBreweries(favorites);
-            } else {
-                favoritesAdapter.setBreweries(new java.util.ArrayList<>());
+            java.util.List<BreweryEntity> safeFavorites = favorites != null ? favorites : new java.util.ArrayList<>();
+            favoritesAdapter.setBreweries(safeFavorites);
+
+            if (currentTab == 3) {
+                boolean empty = safeFavorites.isEmpty();
+                favoritesEmptyState.setVisibility(empty ? View.VISIBLE : View.GONE);
+                recyclerView.setVisibility(empty ? View.GONE : View.VISIBLE);
             }
         });
     }

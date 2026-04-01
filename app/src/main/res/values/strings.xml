@@ -221,4 +221,10 @@
     <string name="brewery_reviews_empty">No reviews yet for this brewery.</string>
     <string name="brewery_avg_rating">Average: %.1f ⭐</string>
     <string name="button_view_reviews">📋 Reviews</string>
+
+    <string name="empty_cards_title">No loyalty cards yet</string>
+    <string name="empty_cards_message">Create a card from Breweries and start collecting stamps.</string>
+    <string name="empty_favorites_title">No favorites yet</string>
+    <string name="empty_favorites_message">Tap the star in Breweries to build your favorites list.</string>
+    <string name="empty_cta_breweries">Go To Breweries</string>
 </resources>

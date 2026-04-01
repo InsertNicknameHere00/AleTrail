@@ -30,36 +30,36 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:layout_marginBottom="10dp">
+            android:layout_marginBottom="8dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="?attr/aleOverlayBg"
                 android:orientation="vertical"
-                android:padding="14dp">
+                android:padding="10dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="10dp"
+                    android:layout_marginBottom="8dp"
                     android:baselineAligned="false"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
                     <FrameLayout
-                        android:layout_width="42dp"
-                        android:layout_height="42dp">
+                        android:layout_width="36dp"
+                        android:layout_height="36dp">
 
                         <View
-                            android:layout_width="42dp"
-                            android:layout_height="42dp"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
                             android:background="@drawable/bg_avatar_circle" />
 
                         <ImageView
                             android:id="@+id/statsAvatarImage"
-                            android:layout_width="38dp"
-                            android:layout_height="38dp"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
                             android:layout_gravity="center"
                             android:contentDescription="@string/profile_avatar_desc"
                             android:scaleType="centerCrop"
@@ -72,7 +72,7 @@
                             android:gravity="center"
                             android:text="@string/stat_zero"
                             android:textColor="?attr/aleGold"
-                            android:textSize="18sp"
+                            android:textSize="15sp"
                             android:textStyle="bold" />
                     </FrameLayout>
 
@@ -80,12 +80,12 @@
                         android:id="@+id/statsUserName"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
+                        android:layout_marginStart="8dp"
                         android:layout_weight="1"
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:textColor="?attr/aleTextPrimary"
-                        android:textSize="16sp"
+                        android:textSize="14sp"
                         android:textStyle="bold"
                         tools:text="JohnDoe" />
 
@@ -94,12 +94,12 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@drawable/bg_brewery_item"
-                        android:paddingStart="8dp"
-                        android:paddingTop="4dp"
-                        android:paddingEnd="8dp"
-                        android:paddingBottom="4dp"
+                        android:paddingStart="7dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="7dp"
+                        android:paddingBottom="3dp"
                         android:textColor="?attr/aleDiscountGreen"
-                        android:textSize="11sp"
+                        android:textSize="10sp"
                         android:visibility="gone"
                         tools:text="15%"
                         tools:visibility="visible" />
@@ -124,7 +124,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/stat_zero"
                             android:textColor="?attr/aleGold"
-                            android:textSize="24sp"
+                            android:textSize="20sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -132,7 +132,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/stats_stamps"
                             android:textColor="?attr/aleTextSecondary"
-                            android:textSize="11sp" />
+                            android:textSize="10sp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -148,7 +148,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/stat_zero"
                             android:textColor="?attr/aleGold"
-                            android:textSize="24sp"
+                            android:textSize="20sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -156,7 +156,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/stats_visits"
                             android:textColor="?attr/aleTextSecondary"
-                            android:textSize="11sp" />
+                            android:textSize="10sp" />
                     </LinearLayout>
 
                     <LinearLayout
@@ -172,7 +172,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/stat_zero"
                             android:textColor="?attr/aleGold"
-                            android:textSize="24sp"
+                            android:textSize="20sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -180,7 +180,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/stats_badges"
                             android:textColor="?attr/aleTextSecondary"
-                            android:textSize="11sp" />
+                            android:textSize="10sp" />
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
@@ -375,6 +375,92 @@
             android:paddingEnd="14dp"
             android:paddingBottom="120dp">
 
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardsEmptyState"
+                style="@style/AleTrailCardSurface"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="@string/empty_cards_title"
+                        android:textColor="?attr/aleTextPrimary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:gravity="center"
+                        android:text="@string/empty_cards_message"
+                        android:textColor="?attr/aleTextSecondary"
+                        android:textSize="13sp" />
+
+                    <Button
+                        android:id="@+id/btnGoBreweriesFromCards"
+                        style="@style/AleTrail.Button.Primary.DarkText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="42dp"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/empty_cta_breweries" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/favoritesEmptyState"
+                style="@style/AleTrailCardSurface"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="@string/empty_favorites_title"
+                        android:textColor="?attr/aleTextPrimary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:gravity="center"
+                        android:text="@string/empty_favorites_message"
+                        android:textColor="?attr/aleTextSecondary"
+                        android:textSize="13sp" />
+
+                    <Button
+                        android:id="@+id/btnGoBreweriesFromFavorites"
+                        style="@style/AleTrail.Button.Primary.DarkText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="42dp"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/empty_cta_breweries" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
@@ -403,7 +489,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|start"
-        android:layout_marginStart="70dp"
+        android:layout_marginStart="84dp"
         android:layout_marginBottom="24dp"
         android:contentDescription="@string/action_find_nearby"
         app:backgroundTint="?attr/aleFabSecondary"
