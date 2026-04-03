@@ -9,6 +9,7 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,6 +21,7 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.lifecycle.LiveData;
+import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -48,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     private TextInputEditText stateFilterInput;
     private FloatingActionButton fabFindNearby;
     private FloatingActionButton fabScanQR;
+    private com.google.android.material.button.MaterialButton btnToggleSearch;
     private Button applyFilterButton;
     private ExtendedFloatingActionButton fabAddCard;
     private FloatingActionButton fabScrollTop;
@@ -99,6 +102,8 @@ public class MainActivity extends AppCompatActivity {
 
     // По подразбиране филтрите са скрити
     private boolean isFilterExpanded = false;
+    private boolean isSearchExpanded = false;
+    private int lastEarnedBadgeCount = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -187,6 +192,10 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(this, ProfileActivity.class));
                 overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                 return true;
+            } else if (id == R.id.action_notifications) {
+                startActivity(new Intent(this, NotificationsActivity.class));
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+                return true;
             } else if (id == R.id.action_reviews) {
                 startActivity(new Intent(this, RatingsActivity.class));
                 overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
@@ -226,6 +235,7 @@ public class MainActivity extends AppCompatActivity {
         stateFilterInput = findViewById(R.id.stateFilterInput);
         fabFindNearby = findViewById(R.id.fabFindNearby);
         fabScanQR = findViewById(R.id.fabScanQR);
+        btnToggleSearch = findViewById(R.id.btnToggleSearch);
         applyFilterButton = findViewById(R.id.applyFilterButton);
         fabAddCard = findViewById(R.id.fabAddCard);
         fabScrollTop = findViewById(R.id.fabScrollTop);
@@ -245,6 +255,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Държим filter-ите скрити по подразбиране.
         filterCard.setVisibility(View.GONE);
+        searchInputLayout.setVisibility(View.GONE);
         cardsEmptyState.setVisibility(View.GONE);
         favoritesEmptyState.setVisibility(View.GONE);
     }
@@ -277,23 +288,8 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCreateCardClick(BreweryEntity brewery) {
-                createLoyaltyCard(brewery);
-            }
-
-            @Override
-            public void onBreweryLongPress(BreweryEntity brewery) {
-                showBreweryStampQR(brewery);
-            }
-
-            @Override
-            public void onRateClick(BreweryEntity brewery) {
-                showRateBreweryDialog(brewery);
-            }
-
-            @Override
-            public void onViewReviewsClick(BreweryEntity brewery) {
-                openBreweryReviews(brewery);
+            public void onBreweryLongPress(BreweryEntity brewery, View anchorView) {
+                showBreweryActionsMenu(brewery, anchorView);
             }
         });
 
@@ -331,23 +327,8 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCreateCardClick(BreweryEntity brewery) {
-                createLoyaltyCard(brewery);
-            }
-
-            @Override
-            public void onBreweryLongPress(BreweryEntity brewery) {
-                showBreweryStampQR(brewery);
-            }
-
-            @Override
-            public void onRateClick(BreweryEntity brewery) {
-                showRateBreweryDialog(brewery);
-            }
-
-            @Override
-            public void onViewReviewsClick(BreweryEntity brewery) {
-                openBreweryReviews(brewery);
+            public void onBreweryLongPress(BreweryEntity brewery, View anchorView) {
+                showBreweryActionsMenu(brewery, anchorView);
             }
         }, true); // true = показва remove бутона
 
@@ -392,6 +373,11 @@ public class MainActivity extends AppCompatActivity {
         });
 
         recyclerView.setAdapter(breweryAdapter);
+        DefaultItemAnimator animator = new DefaultItemAnimator();
+        animator.setAddDuration(180);
+        animator.setMoveDuration(160);
+        animator.setRemoveDuration(120);
+        recyclerView.setItemAnimator(animator);
     }
 
     private void setupTabs() {
@@ -424,8 +410,9 @@ public class MainActivity extends AppCompatActivity {
                     favoritesEmptyState.setVisibility(View.GONE);
                     loadBreweries();
                     fabAddCard.hide();
-                    searchInputLayout.setVisibility(View.VISIBLE);
-                    filterCard.setVisibility(isFilterExpanded ? View.VISIBLE : View.GONE);
+                    btnToggleSearch.setVisibility(View.VISIBLE);
+                    searchInputLayout.setVisibility(isSearchExpanded ? View.VISIBLE : View.GONE);
+                    filterCard.setVisibility((isFilterExpanded && isSearchExpanded) ? View.VISIBLE : View.GONE);
                     fabFindNearby.show();
                     break;
                 case 1: // Моите карти
@@ -437,9 +424,11 @@ public class MainActivity extends AppCompatActivity {
                     loadUserCards();
                     loadBestDiscount(); // Обновяваме discount данните
                     fabAddCard.show();
+                    btnToggleSearch.setVisibility(View.GONE);
                     searchInputLayout.setVisibility(View.GONE);
                     filterCard.setVisibility(View.GONE);
                     isFilterExpanded = false;
+                    isSearchExpanded = false;
                     fabFindNearby.hide();
                     break;
                 case 2: // Badges grid
@@ -450,9 +439,11 @@ public class MainActivity extends AppCompatActivity {
                     favoritesEmptyState.setVisibility(View.GONE);
                     loadBadges();
                     fabAddCard.hide();
+                    btnToggleSearch.setVisibility(View.GONE);
                     searchInputLayout.setVisibility(View.GONE);
                     filterCard.setVisibility(View.GONE);
                     isFilterExpanded = false;
+                    isSearchExpanded = false;
                     fabFindNearby.hide();
                     break;
                 case 3: // Favorites
@@ -463,9 +454,11 @@ public class MainActivity extends AppCompatActivity {
                     favoritesEmptyState.setVisibility(View.GONE);
                     loadFavorites();
                     fabAddCard.hide();
+                    btnToggleSearch.setVisibility(View.GONE);
                     searchInputLayout.setVisibility(View.GONE);
                     filterCard.setVisibility(View.GONE);
                     isFilterExpanded = false;
+                    isSearchExpanded = false;
                     fabFindNearby.hide();
                     break;
             }
@@ -482,12 +475,24 @@ public class MainActivity extends AppCompatActivity {
         });
         applyFilterButton.setOnClickListener(v -> applyFilters());
 
+        btnToggleSearch.setOnClickListener(v -> {
+            if (currentTab != 0) return;
+            isSearchExpanded = !isSearchExpanded;
+            searchInputLayout.setVisibility(isSearchExpanded ? View.VISIBLE : View.GONE);
+            filterCard.setVisibility((isFilterExpanded && isSearchExpanded) ? View.VISIBLE : View.GONE);
+            if (isSearchExpanded) {
+                searchEditText.requestFocus();
+            } else {
+                searchEditText.setText("");
+            }
+        });
+
         btnGoBreweriesFromCards.setOnClickListener(v -> tabLayout.selectTab(tabLayout.getTabAt(0)));
         btnGoBreweriesFromFavorites.setOnClickListener(v -> tabLayout.selectTab(tabLayout.getTabAt(0)));
 
         // Показваме/скриваме compact филтъра от иконата в search
         searchInputLayout.setEndIconOnClickListener(v -> {
-            if (currentTab != 0) return;
+            if (currentTab != 0 || !isSearchExpanded) return;
             isFilterExpanded = !isFilterExpanded;
             filterCard.setVisibility(isFilterExpanded ? View.VISIBLE : View.GONE);
         });
@@ -605,6 +610,24 @@ public class MainActivity extends AppCompatActivity {
             badgesLiveData.observe(this, badges -> {
                 if (badges != null) {
                     badgeAdapter.setBadges(badges);
+
+                    int earnedCount = 0;
+                    BadgeEntity latestEarned = null;
+                    for (BadgeEntity badge : badges) {
+                        if (badge.isEarned()) {
+                            earnedCount++;
+                            if (latestEarned == null || badge.getEarnedTimestamp() > latestEarned.getEarnedTimestamp()) {
+                                latestEarned = badge;
+                            }
+                        }
+                    }
+
+                    if (lastEarnedBadgeCount >= 0 && earnedCount > lastEarnedBadgeCount && latestEarned != null) {
+                        addNotification("badge", getString(R.string.notification_badge_title),
+                                getString(R.string.notification_badge_desc, latestEarned.getBadgeName()),
+                                "badge_" + latestEarned.getBadgeId() + "_" + latestEarned.getEarnedTimestamp());
+                    }
+                    lastEarnedBadgeCount = earnedCount;
                 }
             });
         }
@@ -775,6 +798,8 @@ public class MainActivity extends AppCompatActivity {
                             runOnUiThread(() -> Toast.makeText(MainActivity.this,
                                     getString(R.string.toast_stamp_added) + " " + breweryName,
                                     Toast.LENGTH_SHORT).show());
+                            addNotification("check-in", getString(R.string.notification_checkin_title),
+                                    getString(R.string.notification_checkin_desc, breweryName), null);
                         }
 
                         @Override
@@ -798,6 +823,8 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(this, R.string.toast_loyalty_card_created, Toast.LENGTH_SHORT).show();
                     tabLayout.selectTab(tabLayout.getTabAt(1)); // Преминаваме към "My Cards"
                     gamificationService.checkCardBadges(currentUserId);
+                    addNotification("badge", getString(R.string.notification_badge_progress_title),
+                            getString(R.string.notification_card_created, brewery.getName()), null);
                 }
             });
         });
@@ -871,6 +898,8 @@ public class MainActivity extends AppCompatActivity {
                     int totalRatings = database.beerRatingDAO().getTotalRatingCountSync(currentUserId);
                     gamificationService.checkRatingBadges(currentUserId, totalRatings);
                     gamificationService.checkVisitBadges(currentUserId);
+                    addNotification("review", ctxString(R.string.ratings_title),
+                            getString(R.string.notification_review_saved, brewery.getName()), null);
 
                     runOnUiThread(() -> Toast.makeText(this, R.string.toast_rating_saved, Toast.LENGTH_SHORT).show());
                 }).start();
@@ -1015,7 +1044,7 @@ public class MainActivity extends AppCompatActivity {
         // Прилагаме филтъра и слушаме резултатите от БД
         if (currentStateFilter != null && currentTypeFilter != null) {
             // State + type заедно
-            Toast.makeText(this, "Filtering by " + currentStateFilter + " and " + currentTypeFilter, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.toast_filter_state_type, currentStateFilter, currentTypeFilter), Toast.LENGTH_SHORT).show();
             breweryRepository.fetchBreweriesByStateAndType(currentStateFilter, currentTypeFilter, 50);
 
             // Слушаме филтрираните резултати
@@ -1027,7 +1056,7 @@ public class MainActivity extends AppCompatActivity {
             });
         } else if (currentStateFilter != null) {
             // Само state
-            Toast.makeText(this, "Filtering by state: " + currentStateFilter, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.toast_filter_state, currentStateFilter), Toast.LENGTH_SHORT).show();
             breweryRepository.fetchBreweriesByState(currentStateFilter, 50);
 
             // Слушаме филтрираните резултати
@@ -1039,7 +1068,7 @@ public class MainActivity extends AppCompatActivity {
             });
         } else if (currentTypeFilter != null) {
             // Само type
-            Toast.makeText(this, "Filtering by type: " + currentTypeFilter, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.toast_filter_type, currentTypeFilter), Toast.LENGTH_SHORT).show();
             breweryRepository.fetchBreweriesByType(currentTypeFilter, 50);
 
             // Слушаме филтрираните резултати
@@ -1051,9 +1080,67 @@ public class MainActivity extends AppCompatActivity {
             });
         } else {
             // Няма филтър - връщаме пълния списък
-            Toast.makeText(this, "Showing all breweries", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.toast_filter_show_all, Toast.LENGTH_SHORT).show();
             loadBreweries();
         }
+    }
+
+    private void showBreweryActionsMenu(BreweryEntity brewery, View anchorView) {
+        PopupMenu menu = new PopupMenu(this, anchorView);
+        menu.getMenu().add(0, 1, 0, R.string.menu_brewery_qr);
+        menu.getMenu().add(0, 2, 1, R.string.menu_brewery_maps);
+        menu.getMenu().add(0, 3, 2, R.string.menu_brewery_reviews);
+        menu.getMenu().add(0, 4, 3, R.string.menu_brewery_card);
+        menu.getMenu().add(0, 5, 4, R.string.menu_brewery_rate);
+        menu.getMenu().add(0, 6, 5, brewery.isFavorite() ? R.string.menu_brewery_unfavorite : R.string.menu_brewery_favorite);
+
+        menu.setOnMenuItemClickListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == 1) {
+                showBreweryStampQR(brewery);
+            } else if (itemId == 2) {
+                openBreweryInMaps(brewery);
+            } else if (itemId == 3) {
+                openBreweryReviews(brewery);
+            } else if (itemId == 4) {
+                createLoyaltyCard(brewery);
+            } else if (itemId == 5) {
+                showRateBreweryDialog(brewery);
+            } else if (itemId == 6) {
+                breweryRepository.toggleFavorite(brewery, new BreweryRepository.ToggleFavoriteCallback() {
+                    @Override
+                    public void onComplete(boolean newState) {
+                        runOnUiThread(() -> Toast.makeText(MainActivity.this,
+                                newState ? getString(R.string.toast_added_to_favorites) : getString(R.string.toast_removed_from_favorites),
+                                Toast.LENGTH_SHORT).show());
+                    }
+                });
+            }
+            return true;
+        });
+        menu.show();
+    }
+
+    private String ctxString(int resId) {
+        return getString(resId);
+    }
+
+    private void addNotification(String type, String title, String description, String sourceKey) {
+        new Thread(() -> {
+            try {
+                NotificationEntity notification = new NotificationEntity();
+                notification.setUserId(currentUserId);
+                notification.setType(type);
+                notification.setTitle(title);
+                notification.setDescription(description);
+                notification.setRead(false);
+                notification.setTimestamp(System.currentTimeMillis());
+                notification.setSourceKey(sourceKey != null ? sourceKey : (type + "_" + System.currentTimeMillis()));
+                database.notificationDAO().insert(notification);
+            } catch (Exception e) {
+                android.util.Log.e("MainActivity", "Notification insert failed: " + e.getMessage());
+            }
+        }).start();
     }
 
     // Отваряме локацията в Google Maps (или браузър fallback).
@@ -1063,9 +1150,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // Ако има координати, ползваме тях
         if (brewery.getLatitude() != null && brewery.getLongitude() != null) {
-            // Изграждаме прецизен geo intent.
             double lat = brewery.getLatitude();
             double lon = brewery.getLongitude();
             String uri = "geo:" + lat + "," + lon + "?q=" + lat + "," + lon + "(" + android.net.Uri.encode(brewery.getName()) + ")";
@@ -1073,17 +1158,14 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(uri));
             intent.setPackage("com.google.android.apps.maps");
 
-            // Проверка дали има инсталиран Google Maps
             if (intent.resolveActivity(getPackageManager()) != null) {
                 startActivity(intent);
             } else {
-                // Browser fallback
                 String mapsUrl = "https://www.google.com/maps/search/?api=1&query=" + lat + "," + lon;
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(mapsUrl));
                 startActivity(browserIntent);
             }
         } else {
-            // Ако няма координати, търсим по адрес
             StringBuilder address = new StringBuilder();
             if (brewery.getStreet() != null && !brewery.getStreet().isEmpty()) {
                 address.append(brewery.getStreet()).append(", ");
@@ -1099,7 +1181,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             if (address.length() > 0) {
-                String query = android.net.Uri.encode(brewery.getName() + " " + address.toString());
+                String query = android.net.Uri.encode(brewery.getName() + " " + address);
                 String uri = "geo:0,0?q=" + query;
 
                 Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(uri));
@@ -1108,7 +1190,6 @@ public class MainActivity extends AppCompatActivity {
                 if (intent.resolveActivity(getPackageManager()) != null) {
                     startActivity(intent);
                 } else {
-                    // Browser fallback
                     String mapsUrl = "https://www.google.com/maps/search/?api=1&query=" + query;
                     Intent browserIntent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(mapsUrl));
                     startActivity(browserIntent);
@@ -1167,11 +1248,9 @@ public class MainActivity extends AppCompatActivity {
                             mapUuid = json.get("uuid").getAsString();
                         }
                     } else if (parsed.isJsonPrimitive() && parsed.getAsJsonPrimitive().isString()) {
-                        // Понякога API връща plain JSON string при грешка
                         String msg = parsed.getAsString();
-                        final String finalMsg = msg;
                         runOnUiThread(() -> Toast.makeText(this,
-                                getString(R.string.map_error, finalMsg), Toast.LENGTH_LONG).show());
+                                getString(R.string.map_error, msg), Toast.LENGTH_LONG).show());
                         return;
                     }
                 } catch (Exception parseException) {
@@ -1189,7 +1268,6 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 int addedCount = 0;
-
                 for (BreweryEntity brewery : favorites) {
                     if (brewery.getLatitude() != null && brewery.getLongitude() != null) {
                         String desc = brewery.getName() != null ? brewery.getName() : "Brewery";
@@ -1205,12 +1283,6 @@ public class MainActivity extends AppCompatActivity {
                                     RetrofitClient.getCartesAPI().createMarker(mapUuid, marker).execute();
                             if (markerResp.isSuccessful()) {
                                 addedCount++;
-                            } else {
-                                String markerErr;
-                                try (okhttp3.ResponseBody eb = markerResp.errorBody()) {
-                                    markerErr = eb != null ? eb.string() : "Unknown marker error";
-                                }
-                                android.util.Log.e("MainActivity", "Failed to add marker: " + markerErr);
                             }
                         } catch (Exception e) {
                             android.util.Log.e("MainActivity", "Failed to add marker: " + e.getMessage());

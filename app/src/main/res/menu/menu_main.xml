@@ -25,5 +25,10 @@
         android:title="@string/menu_profile"
         android:icon="@android:drawable/ic_menu_myplaces"
         app:showAsAction="ifRoom" />
-</menu>
 
+    <item
+        android:id="@+id/action_notifications"
+        android:title="@string/notifications_title"
+        android:icon="@android:drawable/ic_dialog_info"
+        app:showAsAction="never" />
+</menu>

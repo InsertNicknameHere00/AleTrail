@@ -119,71 +119,17 @@
             app:layout_constraintTop_toBottomOf="@id/breweryPhone"
             tools:text="www.craftybrewery.com" />
 
-        <LinearLayout
-            android:id="@+id/actionButtonsRow"
+        <TextView
+            android:id="@+id/holdHint"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:orientation="vertical"
+            android:text="@string/brewery_hold_actions_hint"
+            android:textColor="?attr/aleTextHint"
+            android:textSize="12sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/breweryWebsite">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:baselineAligned="false">
-
-                <Button
-                    android:id="@+id/createCardButton"
-                    style="@style/AleTrail.Button.Primary"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="4dp"
-                    android:text="@string/button_create_loyalty_card"
-                    android:textSize="10sp" />
-
-                <Button
-                    android:id="@+id/rateButton"
-                    style="@style/AleTrail.Button.Primary"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:layout_marginStart="4dp"
-                    android:text="@string/button_rate_brewery"
-                    android:textSize="10sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:orientation="horizontal"
-                android:baselineAligned="false">
-
-                <Button
-                    android:id="@+id/qrCodeButton"
-                    style="@style/AleTrail.Button.Surface"
-                    android:layout_width="0dp"
-                    android:layout_height="38dp"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="4dp"
-                    android:text="@string/button_qr_code"
-                    android:textSize="10sp" />
-
-                <Button
-                    android:id="@+id/viewReviewsButton"
-                    style="@style/AleTrail.Button.Surface"
-                    android:layout_width="0dp"
-                    android:layout_height="38dp"
-                    android:layout_weight="1"
-                    android:layout_marginStart="4dp"
-                    android:text="@string/button_view_reviews"
-                    android:textSize="10sp" />
-            </LinearLayout>
-        </LinearLayout>
+            app:layout_constraintTop_toBottomOf="@id/breweryWebsite" />
 
         <Button
             android:id="@+id/removeFavoriteButton"
@@ -198,7 +144,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/actionButtonsRow" />
+            app:layout_constraintTop_toBottomOf="@id/holdHint" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

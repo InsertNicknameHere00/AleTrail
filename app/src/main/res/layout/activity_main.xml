@@ -25,6 +25,19 @@
             app:title="@string/app_title_with_emoji"
             app:titleTextColor="?attr/aleTabTextSelected" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnToggleSearch"
+            style="@style/AleTrail.Button.Primary"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_marginStart="14dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/button_toggle_search"
+            android:textSize="12sp"
+            app:icon="@android:drawable/ic_menu_search"
+            app:iconTint="?attr/aleButtonText" />
+
         <com.google.android.material.card.MaterialCardView
             style="@style/AleTrailCardSurfaceLarge"
             android:layout_width="match_parent"
@@ -99,7 +112,7 @@
                         android:paddingEnd="7dp"
                         android:paddingBottom="3dp"
                         android:textColor="?attr/aleDiscountGreen"
-                        android:textSize="10sp"
+                        android:textSize="12sp"
                         android:visibility="gone"
                         tools:text="15%"
                         tools:visibility="visible" />
@@ -227,6 +240,7 @@
             android:layout_marginEnd="14dp"
             android:layout_marginBottom="8dp"
             android:hint="@string/search_hint"
+            android:visibility="gone"
             app:endIconMode="custom"
             app:endIconDrawable="@android:drawable/ic_menu_manage"
             app:endIconContentDescription="@string/filter_title"
@@ -489,7 +503,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|start"
-        android:layout_marginStart="84dp"
+        android:layout_marginStart="76dp"
         android:layout_marginBottom="24dp"
         android:contentDescription="@string/action_find_nearby"
         app:backgroundTint="?attr/aleFabSecondary"

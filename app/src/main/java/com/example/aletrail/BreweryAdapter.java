@@ -24,10 +24,7 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
     public interface OnBreweryClickListener {
         void onBreweryClick(BreweryEntity brewery);
         void onFavoriteClick(BreweryEntity brewery);
-        void onCreateCardClick(BreweryEntity brewery);
-        void onBreweryLongPress(BreweryEntity brewery);
-        void onRateClick(BreweryEntity brewery);
-        void onViewReviewsClick(BreweryEntity brewery);
+        void onBreweryLongPress(BreweryEntity brewery, View anchorView);
     }
 
     public BreweryAdapter(OnBreweryClickListener listener) {
@@ -99,11 +96,7 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
         private TextView breweryPhone;
         private TextView breweryWebsite;
         private ImageButton favoriteButton;
-        private Button createCardButton;
         private Button removeFavoriteButton;
-        private Button rateButton;
-        private Button qrCodeButton;
-        private Button viewReviewsButton;
         private ImageView breweryIcon;
 
         public BreweryViewHolder(@NonNull View itemView) {
@@ -114,11 +107,7 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
             breweryPhone = itemView.findViewById(R.id.breweryPhone);
             breweryWebsite = itemView.findViewById(R.id.breweryWebsite);
             favoriteButton = itemView.findViewById(R.id.favoriteButton);
-            createCardButton = itemView.findViewById(R.id.createCardButton);
             removeFavoriteButton = itemView.findViewById(R.id.removeFavoriteButton);
-            rateButton = itemView.findViewById(R.id.rateButton);
-            qrCodeButton = itemView.findViewById(R.id.qrCodeButton);
-            viewReviewsButton = itemView.findViewById(R.id.viewReviewsButton);
             breweryIcon = itemView.findViewById(R.id.breweryIcon);
         }
 
@@ -126,7 +115,7 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
             favoriteButton.setImageResource(isFavorite
                     ? android.R.drawable.btn_star_big_on
                     : android.R.drawable.btn_star_big_off);
-            int tint = isFavorite ? 0xFFFFC107 : 0xFF9AA0A6;
+            int tint = isFavorite ? 0xFFFFC107 : 0xFF6FA8FF;
             favoriteButton.setColorFilter(tint, android.graphics.PorterDuff.Mode.SRC_IN);
         }
 
@@ -208,27 +197,8 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
                 }
             });
 
-            createCardButton.setOnClickListener(v -> {
-                if (listener != null) listener.onCreateCardClick(brewery);
-            });
-
-            rateButton.setOnClickListener(v -> {
-                if (listener != null) listener.onRateClick(brewery);
-            });
-
-            // QR button — same as long press
-            qrCodeButton.setOnClickListener(v -> {
-                if (listener != null) listener.onBreweryLongPress(brewery);
-            });
-
-            // View Reviews button
-            viewReviewsButton.setOnClickListener(v -> {
-                if (listener != null) listener.onViewReviewsClick(brewery);
-            });
-
-            // Long press to show brewery stamp QR code
             itemView.setOnLongClickListener(v -> {
-                if (listener != null) listener.onBreweryLongPress(brewery);
+                if (listener != null) listener.onBreweryLongPress(brewery, itemView);
                 return true;
             });
         }

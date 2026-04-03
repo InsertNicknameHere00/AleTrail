@@ -227,4 +227,29 @@
     <string name="empty_favorites_title">No favorites yet</string>
     <string name="empty_favorites_message">Tap the star in Breweries to build your favorites list.</string>
     <string name="empty_cta_breweries">Go To Breweries</string>
+
+    <string name="button_toggle_search">Search</string>
+    <string name="brewery_hold_actions_hint">Hold card for quick actions</string>
+
+    <string name="menu_brewery_qr">Show brewery QR</string>
+    <string name="menu_brewery_maps">Open in Maps</string>
+    <string name="menu_brewery_reviews">View Reviews</string>
+    <string name="menu_brewery_card">Create Loyalty Card</string>
+    <string name="menu_brewery_rate">Rate Brewery</string>
+    <string name="menu_brewery_favorite">Add to Favorites</string>
+    <string name="menu_brewery_unfavorite">Remove from Favorites</string>
+
+    <string name="notifications_title">Notifications</string>
+    <string name="notification_mark_read">Mark as read</string>
+    <string name="notification_type_checkin">Check-in</string>
+    <string name="notification_type_review">Review</string>
+    <string name="notification_type_badge">Badge</string>
+    <string name="notification_type_general">General</string>
+    <string name="notification_checkin_title">Stamp Added</string>
+    <string name="notification_checkin_desc">You received a new stamp at %1$s</string>
+    <string name="notification_review_saved">You posted a review for %1$s</string>
+    <string name="notification_badge_title">Badge Unlocked</string>
+    <string name="notification_badge_desc">You unlocked: %1$s</string>
+    <string name="notification_badge_progress_title">Loyalty Progress</string>
+    <string name="notification_card_created">You created a loyalty card for %1$s</string>
 </resources>

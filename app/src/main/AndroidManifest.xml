@@ -66,6 +66,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".NotificationsActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".BreweryReviewsActivity"
             android:exported="false" />
 
