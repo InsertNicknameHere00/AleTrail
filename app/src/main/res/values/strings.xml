@@ -240,6 +240,8 @@
     <string name="menu_brewery_unfavorite">Remove from Favorites</string>
 
     <string name="notifications_title">Notifications</string>
+    <string name="notifications_mark_all_read">Mark all read</string>
+    <string name="notifications_all_marked_read">All notifications marked as read</string>
     <string name="notification_mark_read">Mark as read</string>
     <string name="notification_type_checkin">Check-in</string>
     <string name="notification_type_review">Review</string>

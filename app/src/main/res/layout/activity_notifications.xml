@@ -25,13 +25,26 @@
             app:tint="?attr/aleGold" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
+            android:layout_weight="1"
             android:text="@string/notifications_title"
             android:textColor="?attr/aleTextPrimary"
             android:textStyle="bold"
             android:textSize="20sp" />
+
+        <Button
+            android:id="@+id/markAllReadButton"
+            style="@style/AleTrail.Button.Surface"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:minHeight="0dp"
+            android:minWidth="0dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="@string/notifications_mark_all_read"
+            android:textSize="11sp" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -42,4 +55,3 @@
         android:layoutAnimation="@anim/layout_list_enter" />
 
 </LinearLayout>
-

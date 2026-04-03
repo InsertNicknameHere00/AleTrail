@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -133,13 +132,15 @@
 
             <Button
                 android:id="@+id/deleteCardButton"
-                style="@style/AleTrail.Button.Outline"
+                style="@style/AleTrail.Button.Danger"
                 android:layout_width="0dp"
                 android:layout_height="40dp"
                 android:layout_weight="1"
                 android:layout_marginStart="4dp"
+                android:background="@drawable/bg_button_danger"
+                android:backgroundTint="@color/ale_danger"
                 android:text="@string/dialog_delete"
-                android:textColor="?attr/aleDanger"
+                android:textColor="@android:color/white"
                 android:textSize="11sp" />
         </LinearLayout>
     </LinearLayout>

@@ -1,8 +1,12 @@
 package com.example.aletrail;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -17,6 +21,9 @@ import androidx.annotation.NonNull;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -40,6 +47,8 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private static final int PERMISSION_REQUEST_CODE = 100;
+    private static final String APP_NOTIFICATIONS_CHANNEL_ID = "aletrail_activity_channel";
+    private static final String APP_NOTIFICATIONS_CHANNEL_NAME = "AleTrail Activity";
     private String currentUserId;
 
     // UI елементи
@@ -67,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
     private View favoritesEmptyState;
     private Button btnGoBreweriesFromCards;
     private Button btnGoBreweriesFromFavorites;
+    private View loadingOverlay;
+    private TextView loadingText;
 
     // Адаптери
     private BreweryAdapter breweryAdapter;
@@ -138,6 +149,7 @@ public class MainActivity extends AppCompatActivity {
         setupToolbar();
         initializeServices();
         initializeViews();
+        ensureNotificationChannel();
         setupRecyclerView();
         setupTabs();
         setupButtons();
@@ -252,6 +264,8 @@ public class MainActivity extends AppCompatActivity {
         favoritesEmptyState = findViewById(R.id.favoritesEmptyState);
         btnGoBreweriesFromCards = findViewById(R.id.btnGoBreweriesFromCards);
         btnGoBreweriesFromFavorites = findViewById(R.id.btnGoBreweriesFromFavorites);
+        loadingOverlay = findViewById(R.id.loadingOverlay);
+        loadingText = findViewById(R.id.loadingText);
 
         // Държим filter-ите скрити по подразбиране.
         filterCard.setVisibility(View.GONE);
@@ -410,7 +424,7 @@ public class MainActivity extends AppCompatActivity {
                     favoritesEmptyState.setVisibility(View.GONE);
                     loadBreweries();
                     fabAddCard.hide();
-                    btnToggleSearch.setVisibility(View.VISIBLE);
+                    btnToggleSearch.setVisibility(isSearchExpanded ? View.GONE : View.VISIBLE);
                     searchInputLayout.setVisibility(isSearchExpanded ? View.VISIBLE : View.GONE);
                     filterCard.setVisibility((isFilterExpanded && isSearchExpanded) ? View.VISIBLE : View.GONE);
                     fabFindNearby.show();
@@ -477,14 +491,11 @@ public class MainActivity extends AppCompatActivity {
 
         btnToggleSearch.setOnClickListener(v -> {
             if (currentTab != 0) return;
-            isSearchExpanded = !isSearchExpanded;
-            searchInputLayout.setVisibility(isSearchExpanded ? View.VISIBLE : View.GONE);
+            isSearchExpanded = true;
+            btnToggleSearch.setVisibility(View.GONE);
+            searchInputLayout.setVisibility(View.VISIBLE);
             filterCard.setVisibility((isFilterExpanded && isSearchExpanded) ? View.VISIBLE : View.GONE);
-            if (isSearchExpanded) {
-                searchEditText.requestFocus();
-            } else {
-                searchEditText.setText("");
-            }
+            searchEditText.requestFocus();
         });
 
         btnGoBreweriesFromCards.setOnClickListener(v -> tabLayout.selectTab(tabLayout.getTabAt(0)));
@@ -495,6 +506,10 @@ public class MainActivity extends AppCompatActivity {
             if (currentTab != 0 || !isSearchExpanded) return;
             isFilterExpanded = !isFilterExpanded;
             filterCard.setVisibility(isFilterExpanded ? View.VISIBLE : View.GONE);
+        });
+
+        searchInputLayout.setStartIconOnClickListener(v -> {
+            // no-op: използваме drawableStart в EditText, не start icon на layout.
         });
 
         // Бутон за скрол нагоре
@@ -537,6 +552,9 @@ public class MainActivity extends AppCompatActivity {
                             searchBreweries(s.toString());
                         } else {
                             loadBreweries();
+                            if (isFilterExpanded) {
+                                filterCard.setVisibility(View.VISIBLE);
+                            }
                         }
                     };
 
@@ -548,6 +566,23 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {}
         });
+
+        searchEditText.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus && searchEditText.getText() != null && searchEditText.getText().toString().trim().isEmpty()) {
+                collapseSearchBar();
+            }
+        });
+    }
+
+    private void collapseSearchBar() {
+        isSearchExpanded = false;
+        isFilterExpanded = false;
+        searchEditText.setText("");
+        searchInputLayout.setVisibility(View.GONE);
+        filterCard.setVisibility(View.GONE);
+        if (currentTab == 0) {
+            btnToggleSearch.setVisibility(View.VISIBLE);
+        }
     }
 
     private void loadBreweries() {
@@ -750,7 +785,9 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        showLoading(R.string.toast_searching_nearby);
         locationService.getCurrentLocation(location -> {
+            runOnUiThread(this::hideLoading);
             if (location != null) {
                 double lat = location.getLatitude();
                 double lon = location.getLongitude();
@@ -925,12 +962,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void requestPermissions() {
-        String[] permissions = {
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.CAMERA
-        };
-        ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE);
+        java.util.List<String> permissions = new java.util.ArrayList<>();
+        permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+        permissions.add(Manifest.permission.CAMERA);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS);
+        }
+        ActivityCompat.requestPermissions(this, permissions.toArray(new String[0]), PERMISSION_REQUEST_CODE);
     }
 
     @Override
@@ -1137,71 +1176,78 @@ public class MainActivity extends AppCompatActivity {
                 notification.setTimestamp(System.currentTimeMillis());
                 notification.setSourceKey(sourceKey != null ? sourceKey : (type + "_" + System.currentTimeMillis()));
                 database.notificationDAO().insert(notification);
+                sendSystemNotification(title, description);
             } catch (Exception e) {
                 android.util.Log.e("MainActivity", "Notification insert failed: " + e.getMessage());
             }
         }).start();
     }
 
-    // Отваряме локацията в Google Maps (или браузър fallback).
-    private void openBreweryInMaps(BreweryEntity brewery) {
-        if (brewery == null) {
-            Toast.makeText(this, R.string.toast_brewery_info_unavailable, Toast.LENGTH_SHORT).show();
+    private void ensureNotificationChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        if (manager == null) return;
+
+        NotificationChannel existing = manager.getNotificationChannel(APP_NOTIFICATIONS_CHANNEL_ID);
+        if (existing != null) return;
+
+        NotificationChannel channel = new NotificationChannel(
+                APP_NOTIFICATIONS_CHANNEL_ID,
+                APP_NOTIFICATIONS_CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_DEFAULT
+        );
+        channel.setDescription("Notifications for AleTrail activity updates");
+        manager.createNotificationChannel(channel);
+    }
+
+    private void sendSystemNotification(String title, String description) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
-        if (brewery.getLatitude() != null && brewery.getLongitude() != null) {
-            double lat = brewery.getLatitude();
-            double lon = brewery.getLongitude();
-            String uri = "geo:" + lat + "," + lon + "?q=" + lat + "," + lon + "(" + android.net.Uri.encode(brewery.getName()) + ")";
+        Intent tapIntent = new Intent(this, NotificationsActivity.class);
+        tapIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                tapIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
 
-            Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(uri));
-            intent.setPackage("com.google.android.apps.maps");
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, APP_NOTIFICATIONS_CHANNEL_ID)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(title)
+                .setContentText(description)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(description))
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent);
 
-            if (intent.resolveActivity(getPackageManager()) != null) {
-                startActivity(intent);
-            } else {
-                String mapsUrl = "https://www.google.com/maps/search/?api=1&query=" + lat + "," + lon;
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(mapsUrl));
-                startActivity(browserIntent);
-            }
-        } else {
-            StringBuilder address = new StringBuilder();
-            if (brewery.getStreet() != null && !brewery.getStreet().isEmpty()) {
-                address.append(brewery.getStreet()).append(", ");
-            }
-            if (brewery.getCity() != null && !brewery.getCity().isEmpty()) {
-                address.append(brewery.getCity()).append(", ");
-            }
-            if (brewery.getState() != null && !brewery.getState().isEmpty()) {
-                address.append(brewery.getState()).append(" ");
-            }
-            if (brewery.getPostal_code() != null && !brewery.getPostal_code().isEmpty()) {
-                address.append(brewery.getPostal_code());
-            }
-
-            if (address.length() > 0) {
-                String query = android.net.Uri.encode(brewery.getName() + " " + address);
-                String uri = "geo:0,0?q=" + query;
-
-                Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(uri));
-                intent.setPackage("com.google.android.apps.maps");
-
-                if (intent.resolveActivity(getPackageManager()) != null) {
-                    startActivity(intent);
-                } else {
-                    String mapsUrl = "https://www.google.com/maps/search/?api=1&query=" + query;
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(mapsUrl));
-                    startActivity(browserIntent);
-                }
-            } else {
-                Toast.makeText(this, R.string.toast_no_location_info, Toast.LENGTH_SHORT).show();
-            }
-        }
+        NotificationManagerCompat.from(this)
+                .notify((int) (System.currentTimeMillis() & 0x0FFFFFFF), builder.build());
     }
 
-    // Създаваме Cartes карта от любимите пивоварни.
+    private void showLoading(int messageResId) {
+        runOnUiThread(() -> {
+            if (loadingOverlay != null) {
+                loadingText.setText(messageResId);
+                loadingOverlay.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    private void hideLoading() {
+        runOnUiThread(() -> {
+            if (loadingOverlay != null) {
+                loadingOverlay.setVisibility(View.GONE);
+            }
+        });
+    }
+
     private void createFavoritesMap() {
+        showLoading(R.string.map_creating);
         Toast.makeText(this, R.string.map_creating, Toast.LENGTH_SHORT).show();
 
         new Thread(() -> {
@@ -1303,7 +1349,66 @@ public class MainActivity extends AppCompatActivity {
                 android.util.Log.e("MainActivity", "Error creating favorites map: " + e.getMessage());
                 runOnUiThread(() -> Toast.makeText(this,
                         getString(R.string.map_error, e.getMessage()), Toast.LENGTH_LONG).show());
+            } finally {
+                hideLoading();
             }
         }).start();
+    }
+
+    // Отваряме локацията в Google Maps (или браузър fallback).
+    private void openBreweryInMaps(BreweryEntity brewery) {
+        if (brewery == null) {
+            Toast.makeText(this, R.string.toast_brewery_info_unavailable, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (brewery.getLatitude() != null && brewery.getLongitude() != null) {
+            double lat = brewery.getLatitude();
+            double lon = brewery.getLongitude();
+            String uri = "geo:" + lat + "," + lon + "?q=" + lat + "," + lon + "(" + android.net.Uri.encode(brewery.getName()) + ")";
+
+            Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(uri));
+            intent.setPackage("com.google.android.apps.maps");
+
+            if (intent.resolveActivity(getPackageManager()) != null) {
+                startActivity(intent);
+            } else {
+                String mapsUrl = "https://www.google.com/maps/search/?api=1&query=" + lat + "," + lon;
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(mapsUrl));
+                startActivity(browserIntent);
+            }
+        } else {
+            StringBuilder address = new StringBuilder();
+            if (brewery.getStreet() != null && !brewery.getStreet().isEmpty()) {
+                address.append(brewery.getStreet()).append(", ");
+            }
+            if (brewery.getCity() != null && !brewery.getCity().isEmpty()) {
+                address.append(brewery.getCity()).append(", ");
+            }
+            if (brewery.getState() != null && !brewery.getState().isEmpty()) {
+                address.append(brewery.getState()).append(" ");
+            }
+            if (brewery.getPostal_code() != null && !brewery.getPostal_code().isEmpty()) {
+                address.append(brewery.getPostal_code());
+            }
+
+            if (address.length() > 0) {
+                String query = android.net.Uri.encode(brewery.getName() + " " + address);
+                String uri = "geo:0,0?q=" + query;
+
+                Intent intent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(uri));
+                intent.setPackage("com.google.android.apps.maps");
+
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(intent);
+                } else {
+                    String mapsUrl = "https://www.google.com/maps/search/?api=1&query=" + query;
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, android.net.Uri.parse(mapsUrl));
+                    startActivity(browserIntent);
+                }
+            } else {
+                Toast.makeText(this, R.string.toast_no_location_info, Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }

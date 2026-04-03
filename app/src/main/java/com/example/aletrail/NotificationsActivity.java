@@ -1,6 +1,7 @@
 package com.example.aletrail;
 
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -23,6 +24,7 @@ public class NotificationsActivity extends AppCompatActivity {
         database = Database.getInstance(this);
 
         ImageButton backButton = findViewById(R.id.backButton);
+        Button markAllReadButton = findViewById(R.id.markAllReadButton);
         RecyclerView notificationsList = findViewById(R.id.notificationsRecyclerView);
 
         backButton.setOnClickListener(v -> onBackPressed());
@@ -43,7 +45,17 @@ public class NotificationsActivity extends AppCompatActivity {
             return;
         }
 
+        markAllReadButton.setOnClickListener(v -> {
+            new Thread(() -> {
+                database.notificationDAO().markAllAsRead(userId);
+                runOnUiThread(() -> Toast.makeText(
+                        NotificationsActivity.this,
+                        R.string.notifications_all_marked_read,
+                        Toast.LENGTH_SHORT
+                ).show());
+            }).start();
+        });
+
         database.notificationDAO().getNotificationsForUser(userId).observe(this, adapter::setNotifications);
     }
 }
-

@@ -387,7 +387,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="44dp"
                     android:layout_marginTop="16dp"
-                    android:text="@string/btn_delete_account" />
+                    android:background="@drawable/bg_button_danger"
+                    android:backgroundTint="@color/ale_danger"
+                    android:text="@string/btn_delete_account"
+                    android:textColor="@android:color/white" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

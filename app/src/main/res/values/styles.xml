@@ -34,7 +34,9 @@
     <style name="AleTrail.Button.Outline" parent="AleTrail.Button.Primary" />
 
     <style name="AleTrail.Button.Danger" parent="AleTrail.Button.Primary">
-        <item name="android:backgroundTint">?attr/aleDanger</item>
+        <item name="android:background">@drawable/bg_button_danger</item>
+        <item name="android:backgroundTint">@color/ale_danger</item>
+        <item name="backgroundTint">@color/ale_danger</item>
         <item name="android:textColor">@android:color/white</item>
     </style>
 
