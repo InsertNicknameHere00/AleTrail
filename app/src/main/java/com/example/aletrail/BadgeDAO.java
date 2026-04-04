@@ -26,8 +26,14 @@ public interface BadgeDAO {
     @Query("SELECT * FROM badge_table WHERE userId = :userId AND isEarned = 1 ORDER BY earnedTimestamp DESC")
     List<BadgeEntity> getEarnedBadgesSync(String userId);
 
+    @Query("SELECT * FROM badge_table WHERE userId = :userId ORDER BY earnedTimestamp DESC")
+    List<BadgeEntity> getAllBadgesForUserSync(String userId);
+
     @Query("SELECT * FROM badge_table WHERE userId = :userId AND isEarned = 0")
     LiveData<List<BadgeEntity>> getUnlockedBadges(String userId);
+
+    @Query("SELECT * FROM badge_table WHERE userId = :userId AND badgeType = :badgeType LIMIT 1")
+    BadgeEntity getBadgeByTypeSync(String userId, String badgeType);
 
     @Query("UPDATE badge_table SET isEarned = 1, earnedTimestamp = :timestamp WHERE badgeId = :badgeId")
     void unlockBadge(int badgeId, long timestamp);

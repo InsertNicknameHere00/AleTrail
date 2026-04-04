@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Преизползваеми стилове за еднакъв UI. -->
+
+    <style name="AleTrailCardSurface">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">6dp</item>
+        <item name="cardBackgroundColor">?attr/aleCardBackground</item>
+        <item name="strokeColor">?attr/aleSurfaceStroke</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <style name="AleTrailCardSurfaceLarge" parent="AleTrailCardSurface">
+        <item name="cardCornerRadius">20dp</item>
+        <item name="cardElevation">8dp</item>
+    </style>
+
+    <style name="AleTrail.Button.Primary" parent="Widget.Material3.Button">
+        <item name="android:background">@drawable/bg_button_primary</item>
+        <item name="android:textColor">?attr/aleButtonText</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:minHeight">42dp</item>
+    </style>
+
+    <style name="AleTrail.Button.Primary.DarkText" parent="AleTrail.Button.Primary">
+        <item name="android:textColor">#111111</item>
+    </style>
+
+    <style name="AleTrail.Button.Surface" parent="AleTrail.Button.Primary" />
+
+    <style name="AleTrail.Button.Muted" parent="AleTrail.Button.Primary" />
+
+    <style name="AleTrail.Button.Outline" parent="AleTrail.Button.Primary" />
+
+    <style name="AleTrail.Button.Danger" parent="AleTrail.Button.Primary">
+        <item name="android:background">@drawable/bg_button_danger</item>
+        <item name="android:backgroundTint">@color/ale_danger</item>
+        <item name="backgroundTint">@color/ale_danger</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="AleTrail.TextInput.Outlined" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundColor">?attr/aleCardBackgroundLighter</item>
+        <item name="boxStrokeColor">?attr/aleGold</item>
+        <item name="hintTextColor">?attr/aleGold</item>
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+    </style>
+
+    <style name="AleTrail.Chip.Filter" parent="Widget.MaterialComponents.Chip.Choice">
+        <item name="chipBackgroundColor">@color/chip_background_color</item>
+        <item name="chipStrokeColor">?attr/aleGold</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="android:textColor">?attr/aleTextPrimary</item>
+    </style>
+
+    <style name="AleTrail.WindowAnimation" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/slide_in_right_soft</item>
+        <item name="android:activityOpenExitAnimation">@anim/fade_out_soft</item>
+        <item name="android:activityCloseEnterAnimation">@anim/fade_in_soft</item>
+        <item name="android:activityCloseExitAnimation">@anim/slide_out_right_soft</item>
+    </style>
+
+    <style name="AleTrailTextToolbarTitle">
+        <item name="android:textColor">?attr/aleTabTextSelected</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">22sp</item>
+    </style>
+
+    <style name="AleTrailTextSectionTitle">
+        <item name="android:textColor">?attr/aleTextPrimary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="AleTrailTextSectionHint">
+        <item name="android:textColor">?attr/aleTextHint</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+</resources>

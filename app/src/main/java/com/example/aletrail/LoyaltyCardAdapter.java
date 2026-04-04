@@ -4,7 +4,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -25,7 +24,6 @@ public class LoyaltyCardAdapter extends RecyclerView.Adapter<LoyaltyCardAdapter.
 
     public interface OnCardClickListener {
         void onCardClick(LoyaltyCardEntity card);
-        void onQRCodeClick(LoyaltyCardEntity card);
         void onShareClick(LoyaltyCardEntity card);
         void onHistoryClick(LoyaltyCardEntity card);
         void onDeleteClick(LoyaltyCardEntity card);
@@ -57,7 +55,6 @@ public class LoyaltyCardAdapter extends RecyclerView.Adapter<LoyaltyCardAdapter.
     public void setCards(List<LoyaltyCardEntity> newCards) {
         final List<LoyaltyCardEntity> finalNewCards = (newCards == null) ? new ArrayList<>() : newCards;
 
-        // Use DiffUtil for efficient updates
         DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
             @Override
             public int getOldListSize() {
@@ -88,14 +85,21 @@ public class LoyaltyCardAdapter extends RecyclerView.Adapter<LoyaltyCardAdapter.
         diffResult.dispatchUpdatesTo(this);
     }
 
+    // Правило за отстъпка: на всеки 2 печата = 5%, цикълът е 10 печата.
+    public static int calculateDiscount(int totalStamps) {
+        int cycleStamps = totalStamps % 10;
+        return (cycleStamps / 2) * 5;
+    }
+
     class CardViewHolder extends RecyclerView.ViewHolder {
         private TextView cardBreweryName;
         private TextView stampCount;
         private TextView stampEmojis;
         private ProgressBar stampProgressBar;
-        private ImageButton qrButton;
         private Button shareButton;
         private Button viewHistoryButton;
+        private Button deleteCardButton;
+        private TextView discountText;
 
         public CardViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -103,52 +107,67 @@ public class LoyaltyCardAdapter extends RecyclerView.Adapter<LoyaltyCardAdapter.
             stampCount = itemView.findViewById(R.id.stampCount);
             stampEmojis = itemView.findViewById(R.id.stampEmojis);
             stampProgressBar = itemView.findViewById(R.id.stampProgressBar);
-            qrButton = itemView.findViewById(R.id.qrButton);
             shareButton = itemView.findViewById(R.id.shareButton);
             viewHistoryButton = itemView.findViewById(R.id.viewHistoryButton);
+            deleteCardButton = itemView.findViewById(R.id.deleteCardButton);
+            discountText = itemView.findViewById(R.id.discountText);
         }
 
         public void bind(LoyaltyCardEntity card) {
-            // Load brewery name from database asynchronously
+            // Вземаме името на пивоварната във фонов поток.
             String breweryId = card.getBreweryId();
-            cardBreweryName.setText("Loading...");
+            cardBreweryName.setText(R.string.loyalty_card_loading);
 
             executor.execute(() -> {
                 try {
                     BreweryEntity brewery = Database.getInstance(itemView.getContext()).AleDAO().getAleByIdSync(breweryId);
                     final String displayName = (brewery != null && brewery.getName() != null && !brewery.getName().isEmpty()) ?
-                            brewery.getName() : ("Brewery #" + breweryId);
+                            brewery.getName() : (itemView.getContext().getString(R.string.loyalty_card_brewery_fallback, breweryId));
 
                     itemView.post(() -> cardBreweryName.setText(displayName));
                 } catch (Exception e) {
-                    itemView.post(() -> cardBreweryName.setText("Brewery #" + breweryId));
+                    itemView.post(() -> cardBreweryName.setText(itemView.getContext().getString(R.string.loyalty_card_brewery_fallback, breweryId)));
                 }
             });
 
             stampCount.setText(card.getStamps() + "/" + card.getMaxStamps());
 
-            // Calculate progress percentage
+            // Процент прогрес спрямо нужните печати.
             int progress = (int) ((card.getStamps() / (float) card.getMaxStamps()) * 100);
             stampProgressBar.setProgress(progress);
 
-            // Generate stamp emojis
+            // Показваме мини цикъл от 10 стъпки за текущата отстъпка.
+            int cycleStamps = card.getStamps() % 10;
+            int cycleMax = 10;
             StringBuilder emojis = new StringBuilder();
-            for (int i = 0; i < card.getMaxStamps(); i++) {
-                if (i < card.getStamps()) {
-                    emojis.append("⭐");
+            for (int i = 0; i < cycleMax; i++) {
+                if (i < cycleStamps) {
+                    emojis.append("🍺");
                 } else {
-                    emojis.append("⚪");
+                    emojis.append("○");
                 }
             }
             stampEmojis.setText(emojis.toString());
+
+            // Показваме активната отстъпка или прогреса в цикъла.
+            int discount = calculateDiscount(card.getStamps());
+            android.content.Context ctx = itemView.getContext();
+            if (discount > 0) {
+                discountText.setText("🎁 " + ctx.getString(R.string.discount_label, discount));
+                discountText.setTextColor(resolveThemeColor(ctx, R.attr.aleDiscountGreen, 0xFF66BB6A));
+                discountText.setTextSize(15);
+                discountText.setVisibility(View.VISIBLE);
+            } else {
+                discountText.setText("🍺 " + ctx.getString(R.string.discount_cycle_label, cycleStamps));
+                discountText.setTextColor(resolveThemeColor(ctx, R.attr.aleTextHint, 0xFFB0BEC5));
+                discountText.setTextSize(13);
+                discountText.setVisibility(View.VISIBLE);
+            }
 
             itemView.setOnClickListener(v -> {
                 if (listener != null) listener.onCardClick(card);
             });
 
-            qrButton.setOnClickListener(v -> {
-                if (listener != null) listener.onQRCodeClick(card);
-            });
 
             shareButton.setOnClickListener(v -> {
                 if (listener != null) listener.onShareClick(card);
@@ -158,11 +177,24 @@ public class LoyaltyCardAdapter extends RecyclerView.Adapter<LoyaltyCardAdapter.
                 if (listener != null) listener.onHistoryClick(card);
             });
 
-            // Long press to delete
+            // Бутон за изтриване.
+            deleteCardButton.setOnClickListener(v -> {
+                if (listener != null) listener.onDeleteClick(card);
+            });
+
+            // Дългото натискане остава като бърз delete.
             itemView.setOnLongClickListener(v -> {
                 if (listener != null) listener.onDeleteClick(card);
                 return true;
             });
+        }
+
+        private int resolveThemeColor(android.content.Context context, int attr, int fallback) {
+            android.util.TypedValue typedValue = new android.util.TypedValue();
+            if (context.getTheme().resolveAttribute(attr, typedValue, true)) {
+                return typedValue.data;
+            }
+            return fallback;
         }
     }
 }

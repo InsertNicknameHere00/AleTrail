@@ -3,7 +3,6 @@ package com.example.aletrail;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -12,8 +11,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.chip.Chip;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class BadgeAdapter extends RecyclerView.Adapter<BadgeAdapter.BadgeViewHolder> {
 
@@ -48,9 +50,16 @@ public class BadgeAdapter extends RecyclerView.Adapter<BadgeAdapter.BadgeViewHol
     }
 
     public void setBadges(List<BadgeEntity> newBadges) {
-        final List<BadgeEntity> finalNewBadges = (newBadges == null) ? new ArrayList<>() : newBadges;
+        List<BadgeEntity> sorted = (newBadges == null) ? new ArrayList<>() : new ArrayList<>(newBadges);
+        // Sort: earned badges first (by earned timestamp desc), then unearned (by required count asc)
+        sorted.sort((a, b) -> {
+            if (a.isEarned() && !b.isEarned()) return -1;
+            if (!a.isEarned() && b.isEarned()) return 1;
+            if (a.isEarned() && b.isEarned()) return Long.compare(b.getEarnedTimestamp(), a.getEarnedTimestamp());
+            return Integer.compare(a.getRequiredCount(), b.getRequiredCount());
+        });
+        final List<BadgeEntity> finalNewBadges = sorted;
 
-        // Use DiffUtil for efficient updates
         DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new DiffUtil.Callback() {
             @Override
             public int getOldListSize() {
@@ -84,7 +93,6 @@ public class BadgeAdapter extends RecyclerView.Adapter<BadgeAdapter.BadgeViewHol
         private TextView badgeIcon;
         private TextView badgeName;
         private TextView badgeDescription;
-        private ProgressBar badgeProgress;
         private Chip earnedChip;
 
         public BadgeViewHolder(@NonNull View itemView) {
@@ -92,7 +100,6 @@ public class BadgeAdapter extends RecyclerView.Adapter<BadgeAdapter.BadgeViewHol
             badgeIcon = itemView.findViewById(R.id.badgeIcon);
             badgeName = itemView.findViewById(R.id.badgeName);
             badgeDescription = itemView.findViewById(R.id.badgeDescription);
-            badgeProgress = itemView.findViewById(R.id.badgeProgress);
             earnedChip = itemView.findViewById(R.id.earnedChip);
         }
 
@@ -101,21 +108,45 @@ public class BadgeAdapter extends RecyclerView.Adapter<BadgeAdapter.BadgeViewHol
             badgeName.setText(badge.getBadgeName());
             badgeDescription.setText(badge.getBadgeDescription());
 
+            // Resolve theme colors
+            android.content.Context ctx = itemView.getContext();
+            int goldColor = resolveThemeColor(ctx, R.attr.aleBadgeNameEarned, 0xFFFFD54F);
+            int greyColor = resolveThemeColor(ctx, R.attr.aleBadgeNameUnearned, 0xFF9E9E9E);
+
             if (badge.isEarned()) {
-                badgeProgress.setVisibility(View.GONE);
-                earnedChip.setVisibility(View.VISIBLE);
+                // Earned: full brightness, golden glow, show earned chip with date
                 itemView.setAlpha(1.0f);
+                badgeIcon.setAlpha(1.0f);
+                badgeName.setTextColor(goldColor);
+                earnedChip.setVisibility(View.VISIBLE);
+
+                // Show earned date
+                if (badge.getEarnedTimestamp() > 0) {
+                    SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
+                    String dateStr = sdf.format(new Date(badge.getEarnedTimestamp()));
+                    earnedChip.setText(ctx.getString(R.string.badge_earned_with_date, dateStr));
+                } else {
+                    earnedChip.setText(R.string.badge_earned);
+                }
             } else {
-                badgeProgress.setVisibility(View.VISIBLE);
+                // Unearned: greyed out, desaturated
+                itemView.setAlpha(0.5f);
+                badgeIcon.setAlpha(0.3f);
+                badgeName.setTextColor(greyColor);
                 earnedChip.setVisibility(View.GONE);
-                itemView.setAlpha(0.6f);
-                // TODO: Set actual progress based on user stats
-                badgeProgress.setProgress(50);
             }
 
             itemView.setOnClickListener(v -> {
                 if (listener != null) listener.onBadgeClick(badge);
             });
+        }
+
+        private int resolveThemeColor(android.content.Context context, int attr, int fallback) {
+            android.util.TypedValue typedValue = new android.util.TypedValue();
+            if (context.getTheme().resolveAttribute(attr, typedValue, true)) {
+                return typedValue.data;
+            }
+            return fallback;
         }
     }
 }

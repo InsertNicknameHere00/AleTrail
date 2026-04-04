@@ -11,8 +11,9 @@ import androidx.room.RoomDatabase;
         UserEntity.class,
         VisitEntity.class,
         BadgeEntity.class,
-        BeerRatingEntity.class
-}, version = 3, exportSchema = false)
+        BeerRatingEntity.class,
+        NotificationEntity.class
+}, version = 6, exportSchema = false)
 public abstract class Database extends RoomDatabase {
     public abstract AleTrailDAO AleDAO();
     public abstract LoyaltyCardDAO loyaltyCardDAO();
@@ -20,6 +21,7 @@ public abstract class Database extends RoomDatabase {
     public abstract VisitDAO visitDAO();
     public abstract BadgeDAO badgeDAO();
     public abstract BeerRatingDAO beerRatingDAO();
+    public abstract NotificationDAO notificationDAO();
 
     private static volatile Database INSTANCE;
 

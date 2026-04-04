@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permissions -->
+    <!-- Основни permissions за internet, location и QR scan. -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -37,19 +37,49 @@
 
         <activity
             android:name=".MainActivity"
-            android:exported="false" />
+            android:exported="true">
+            <!-- Deep link след email verification redirect. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="aletrail"
+                    android:host="verify" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".ProfileActivity"
             android:exported="false" />
 
-        <!-- ZXing Barcode Scanner Activity -->
+        <activity
+            android:name=".VisitHistoryActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".RatingsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".CreateBusinessActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".NotificationsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".BreweryReviewsActivity"
+            android:exported="false" />
+
+        <!-- QR scanner activity от ZXing library. -->
         <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"
             android:screenOrientation="portrait"
             tools:replace="screenOrientation" />
 
-        <!-- FileProvider for camera image capture -->
+        <!-- FileProvider дава достъп за запис на profile image от камера. -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

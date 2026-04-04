@@ -3,22 +3,41 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- AleTrail theme colors -->
-    <color name="ale_primary">#FFB300</color>
-    <color name="ale_primary_dark">#FF8F00</color>
-    <color name="ale_accent">#FFC107</color>
+    <!-- Основни color token-и за светъл mode (override-ите са в values-night). -->
+    <color name="ale_primary">#D8891C</color>
+    <color name="ale_primary_dark">#B56B0E</color>
+    <color name="ale_accent">#F4A62A</color>
 
-    <!-- Background colors -->
-    <color name="ale_bg_dark">#1A0F00</color>
-    <color name="ale_bg_card">#2D1F0A</color>
-    <color name="ale_bg_card_lighter">#3D2F1A</color>
+    <color name="ale_bg_dark">#F7F4EF</color>
+    <color name="ale_bg_card">#FFFDF9</color>
+    <color name="ale_bg_card_lighter">#FFFFFF</color>
 
-    <!-- Text colors for better readability -->
-    <color name="text_primary_dark">#FFFFFF</color>
-    <color name="text_secondary_dark">#E0E0E0</color>
-    <color name="text_hint_dark">#B0B0B0</color>
+    <color name="text_primary_dark">#1F232A</color>
+    <color name="text_secondary_dark">#49525E</color>
+    <color name="text_hint_dark">#7D8794</color>
 
-    <!-- Card colors with better contrast -->
-    <color name="card_text_on_gradient">#1A1A1A</color>
-    <color name="card_shadow">#80000000</color>
+    <color name="card_text_on_gradient">#FFF8EE</color>
+    <color name="card_shadow">#29000000</color>
+
+    <!-- Споделени семантични цветове. -->
+    <color name="ale_surface_stroke">#1A334155</color>
+    <color name="ale_link">#2D6CDF</color>
+    <color name="ale_tab_text">#B31F232A</color>
+    <color name="ale_tab_text_selected">#FF1F232A</color>
+    <color name="ale_fab_secondary">#465469</color>
+    <color name="ale_danger">#C62828</color>
+    <color name="ale_danger_container">#FFE9E4</color>
+
+    <!-- Градиентни цветове за фонове и карти. -->
+    <color name="ale_gradient_start">#FFF6DF</color>
+    <color name="ale_gradient_center">#FFEFD2</color>
+    <color name="ale_gradient_end">#FFE6CC</color>
+
+    <color name="ale_loyalty_gradient_start">#2F3A4C</color>
+    <color name="ale_loyalty_gradient_center">#3D4C64</color>
+    <color name="ale_loyalty_gradient_end">#D8891C</color>
+
+    <color name="ale_progress_bg">#1F000000</color>
+    <color name="ale_progress_start">#F6C35B</color>
+    <color name="ale_progress_end">#D8891C</color>
 </resources>

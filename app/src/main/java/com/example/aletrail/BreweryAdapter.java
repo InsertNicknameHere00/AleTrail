@@ -24,7 +24,7 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
     public interface OnBreweryClickListener {
         void onBreweryClick(BreweryEntity brewery);
         void onFavoriteClick(BreweryEntity brewery);
-        void onCreateCardClick(BreweryEntity brewery);
+        void onBreweryLongPress(BreweryEntity brewery, View anchorView);
     }
 
     public BreweryAdapter(OnBreweryClickListener listener) {
@@ -96,7 +96,6 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
         private TextView breweryPhone;
         private TextView breweryWebsite;
         private ImageButton favoriteButton;
-        private Button createCardButton;
         private Button removeFavoriteButton;
         private ImageView breweryIcon;
 
@@ -108,9 +107,16 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
             breweryPhone = itemView.findViewById(R.id.breweryPhone);
             breweryWebsite = itemView.findViewById(R.id.breweryWebsite);
             favoriteButton = itemView.findViewById(R.id.favoriteButton);
-            createCardButton = itemView.findViewById(R.id.createCardButton);
             removeFavoriteButton = itemView.findViewById(R.id.removeFavoriteButton);
             breweryIcon = itemView.findViewById(R.id.breweryIcon);
+        }
+
+        private void applyFavoriteVisualState(boolean isFavorite) {
+            favoriteButton.setImageResource(isFavorite
+                    ? android.R.drawable.btn_star_big_on
+                    : android.R.drawable.btn_star_big_off);
+            int tint = isFavorite ? 0xFFFFC107 : 0xFF6FA8FF;
+            favoriteButton.setColorFilter(tint, android.graphics.PorterDuff.Mode.SRC_IN);
         }
 
         public void bind(BreweryEntity brewery) {
@@ -174,12 +180,8 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
                 removeFavoriteButton.setVisibility(View.GONE);
             }
 
-            // Update favorite button icon based on state
-            if (brewery.isFavorite()) {
-                favoriteButton.setImageResource(android.R.drawable.star_big_on);
-            } else {
-                favoriteButton.setImageResource(android.R.drawable.star_big_off);
-            }
+            // Различен цвят за favorite on/off.
+            applyFavoriteVisualState(brewery.isFavorite());
 
             itemView.setOnClickListener(v -> {
                 if (listener != null) listener.onBreweryClick(brewery);
@@ -187,12 +189,17 @@ public class BreweryAdapter extends RecyclerView.Adapter<BreweryAdapter.BreweryV
 
             favoriteButton.setOnClickListener(v -> {
                 if (listener != null) {
+                    // UI feedback веднага при toggle.
+                    boolean newState = !brewery.isFavorite();
+                    brewery.setFavorite(newState);
+                    applyFavoriteVisualState(newState);
                     listener.onFavoriteClick(brewery);
                 }
             });
 
-            createCardButton.setOnClickListener(v -> {
-                if (listener != null) listener.onCreateCardClick(brewery);
+            itemView.setOnLongClickListener(v -> {
+                if (listener != null) listener.onBreweryLongPress(brewery, itemView);
+                return true;
             });
         }
     }

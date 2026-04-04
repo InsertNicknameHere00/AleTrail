@@ -7,8 +7,9 @@
     <string name="stats_visits">Visits</string>
     <string name="stats_badges">Badges</string>
     <string name="stat_zero">0</string>
+    <string name="avatar_placeholder">A</string>
 
-    <string name="search_hint">Search breweries...</string>
+    <string name="search_hint">Search breweries…</string>
     <string name="filter_title">🔍 Filter Breweries</string>
     <string name="filter_state_label">By State/Province:</string>
     <string name="filter_state_hint">e.g., California, CA</string>
@@ -34,8 +35,29 @@
 
     <string name="content_brewery_icon">Brewery icon</string>
     <string name="content_add_favorite">Add to favorites</string>
-    <string name="button_create_loyalty_card">🎫 Create Loyalty Card</string>
-    <string name="button_remove_favorite">⭐ Remove from Favorites</string>
+    <string name="button_create_loyalty_card">🎫 Card</string>
+    <string name="button_remove_favorite">❌ Remove</string>
+
+    <string name="button_rate_brewery">⭐ Rate</string>
+    <string name="dialog_rate_brewery_title">Rate Brewery</string>
+    <string name="hint_beer_name">Beer Name (optional)</string>
+    <string name="hint_rating_comment">Comment (optional)</string>
+    <string name="toast_rating_saved">Rating saved! ⭐</string>
+    <string name="toast_rating_failed">Failed to save rating</string>
+
+    <string name="dialog_brewery_stamp_qr_title">Brewery Stamp QR</string>
+    <string name="dialog_brewery_stamp_qr_message">Customers can scan this QR to stamp their loyalty card for %1$s</string>
+    <string name="toast_qr_generation_failed">Failed to generate QR code</string>
+
+    <string name="discount_label">Current Discount: %1$d%%</string>
+    <string name="discount_cycle_label">Discount stamps: %1$d/10</string>
+
+    <string name="dialog_visit_history_title">Visit History</string>
+    <string name="visit_history_empty">No visits recorded yet</string>
+    <string name="visit_history_item">%1$s — Stamp #%2$d</string>
+    <string name="visit_history_title_with_name">Visits — %1$s</string>
+
+    <string name="loading_text">Loading…</string>
 
     <string name="loyalty_card_title">Loyalty Card</string>
     <string name="content_show_qr">Show QR Code</string>
@@ -44,6 +66,7 @@
     <string name="button_history">History</string>
 
     <string name="badge_earned">✓ Earned</string>
+    <string name="badge_earned_with_date">✓ Earned %1$s</string>
     <string name="default_badge_icon">🏆</string>
 
     <string name="toast_added_to_favorites">Added to favorites ⭐</string>
@@ -54,7 +77,8 @@
     <string name="dialog_cancel">Cancel</string>
     <string name="toast_card_id">Card ID: %1$s</string>
     <string name="toast_select_brewery_create_card">Select a brewery to create a card</string>
-    <string name="toast_searching_nearby">Searching nearby breweries...</string>
+    <string name="toast_select_brewery_for_card">Select a brewery to create a card</string>
+    <string name="toast_searching_nearby">Searching nearby breweries…</string>
     <string name="toast_unable_get_location">Unable to get location</string>
     <string name="prompt_scan_qr">Scan a brewery QR code</string>
     <string name="toast_stamp_added">Stamp added! 🎉</string>
@@ -79,18 +103,18 @@
     <string name="toast_location_required_for_stamp">Location required to add stamp</string>
 
     <string name="share_loyalty_card_subject">My Brewery Loyalty Card</string>
-    <string name="share_loyalty_card_text">Check out my loyalty card!\n\nCard ID: %1$d\nStamps: %2$d/%3$d\nQR Code: %4$s</string>
+    <string name="share_loyalty_card_text">Check out my loyalty card!\n\nCard ID: %1$d\nStamps: %2$d/%3$d</string>
     <string name="share_loyalty_card_chooser">Share loyalty card</string>
 
-    <string name="loyalty_card_loading">Loading...</string>
+    <string name="loyalty_card_loading">Loading…</string>
     <string name="loyalty_card_brewery_fallback">Brewery #%1$s</string>
     <string name="brewery_type_default">BREWERY</string>
     <string name="appwrite_project_id">699f35060010dd99484e</string>
     <string name="appwrite_project_name">The AleTrail</string>
     <string name="appwrite_endpoint">https://fra.cloud.appwrite.io/v1</string>
+    <string name="appwrite_verify_url">https://insertnicknamehere00.github.io/AleTrail/verify.html</string>
     <string name="appwrite_database_id">699f4f9c00275039a68b</string>
 
-    <!-- Login / Sign Up -->
     <string name="login_title">Welcome to AleTrail 🍺</string>
     <string name="login_subtitle">Sign in to track your brewery adventures</string>
     <string name="hint_email">Email</string>
@@ -108,8 +132,8 @@
     <string name="login_success">Welcome! 🍻</string>
     <string name="signup_success">Account created! 🎉</string>
     <string name="btn_skip_login">Continue as Guest</string>
+    <string name="login_register_business">🏭 Register Your Business</string>
 
-    <!-- Profile -->
     <string name="profile_title">My Profile 👤</string>
     <string name="profile_display_name_label">Display Name</string>
     <string name="profile_email_label">Email</string>
@@ -124,18 +148,110 @@
     <string name="btn_sign_in_now">Sign In Now</string>
     <string name="menu_profile">Profile</string>
 
-    <!-- Delete Account -->
     <string name="btn_delete_account">Delete Account</string>
     <string name="profile_delete_confirm_title">Delete Account?</string>
     <string name="profile_delete_confirm_message">This will permanently delete your account and all your data including favorites, loyalty cards, visits, badges, and ratings. This action cannot be undone.</string>
     <string name="profile_delete_success">Account deleted successfully</string>
     <string name="profile_delete_error">Failed to delete account: %1$s</string>
 
-    <!-- Profile Avatar -->
     <string name="profile_avatar_desc">Profile photo</string>
     <string name="profile_change_photo">Change profile photo</string>
     <string name="profile_photo_chooser_title">Profile Photo</string>
     <string name="profile_photo_take">Take Photo</string>
     <string name="profile_photo_gallery">Choose from Gallery</string>
     <string name="profile_photo_remove">Remove Photo</string>
+
+    <string name="profile_settings_title">⚙️ Settings</string>
+    <string name="profile_dark_mode">🌙 Dark Mode</string>
+    <string name="profile_email_not_verified">Email not verified</string>
+    <string name="profile_email_verified">✓ Email verified</string>
+    <string name="profile_verify_email">Verify</string>
+    <string name="profile_verify_email_sent">Verification email sent!</string>
+    <string name="profile_verify_email_error">Failed to send verification: %1$s</string>
+    <string name="button_qr_code">📱 QR</string>
+
+    <string name="toast_verifying_email">Verifying email…</string>
+    <string name="toast_email_verified">Email verified! ✓</string>
+    <string name="toast_email_verify_failed">Verification failed: %1$s</string>
+
+    <string name="stats_discount_best">🎁 Best discount: %1$d%% at %2$s</string>
+    <string name="stats_discount_none">🍺 No active discounts yet</string>
+
+    <string name="toast_duplicate_card">You already have a loyalty card for this brewery!</string>
+
+    <string name="badge_unlocked_on">Unlocked on %1$s</string>
+
+    <string name="dialog_submit">Submit</string>
+    <string name="toast_select_rating">Please select a rating</string>
+
+    <string name="ratings_title">🍺 My Reviews</string>
+    <string name="ratings_empty">No ratings yet. Rate a brewery to get started!</string>
+    <string name="rating_item_beer">Beer: %1$s</string>
+    <string name="rating_item_no_beer">General Review</string>
+
+    <string name="map_title">📍 Favorites Map</string>
+    <string name="map_empty">No favorites with location data to show</string>
+    <string name="map_creating">Creating map…</string>
+    <string name="map_created">Map created with %1$d breweries!</string>
+    <string name="map_error">Failed to create map: %1$s</string>
+    <string name="map_open_browser">Open in Browser</string>
+    <string name="map_create_button">📍 View Favorites on Map</string>
+
+    <string name="business_title">🏭 My Business</string>
+    <string name="business_create">Create Business Brewery</string>
+    <string name="business_name_hint">Business Name</string>
+    <string name="business_type_hint">Brewery Type (e.g., micro, brewpub)</string>
+    <string name="business_street_hint">Street Address</string>
+    <string name="business_city_hint">City</string>
+    <string name="business_state_hint">State/Province</string>
+    <string name="business_postal_hint">Postal Code</string>
+    <string name="business_country_hint">Country</string>
+    <string name="business_phone_hint">Phone</string>
+    <string name="business_website_hint">Website URL</string>
+    <string name="business_created">Business brewery created! 🎉</string>
+    <string name="business_qr_title">Your Business QR Code</string>
+    <string name="business_qr_message">Customers scan this to stamp their loyalty card for %1$s</string>
+    <string name="business_empty_name">Please enter a business name</string>
+
+    <string name="action_scroll_top">Scroll to top</string>
+
+    <string name="brewery_reviews_title">Reviews — %1$s</string>
+    <string name="brewery_reviews_title_default">Brewery Reviews</string>
+    <string name="brewery_reviews_community_rating">Community rating</string>
+    <string name="brewery_reviews_empty">No reviews yet for this brewery.</string>
+    <string name="brewery_avg_rating">Average: %.1f ⭐</string>
+    <string name="button_view_reviews">📋 Reviews</string>
+
+    <string name="empty_cards_title">No loyalty cards yet</string>
+    <string name="empty_cards_message">Create a card from Breweries and start collecting stamps.</string>
+    <string name="empty_favorites_title">No favorites yet</string>
+    <string name="empty_favorites_message">Tap the star in Breweries to build your favorites list.</string>
+    <string name="empty_cta_breweries">Go To Breweries</string>
+
+    <string name="button_toggle_search">Search</string>
+    <string name="brewery_hold_actions_hint">Hold card for quick actions</string>
+
+    <string name="menu_brewery_qr">Show brewery QR</string>
+    <string name="menu_brewery_maps">Open in Maps</string>
+    <string name="menu_brewery_reviews">View Reviews</string>
+    <string name="menu_brewery_card">Create Loyalty Card</string>
+    <string name="menu_brewery_rate">Rate Brewery</string>
+    <string name="menu_brewery_favorite">Add to Favorites</string>
+    <string name="menu_brewery_unfavorite">Remove from Favorites</string>
+
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_mark_all_read">Mark all read</string>
+    <string name="notifications_all_marked_read">All notifications marked as read</string>
+    <string name="notification_mark_read">Mark as read</string>
+    <string name="notification_type_checkin">Check-in</string>
+    <string name="notification_type_review">Review</string>
+    <string name="notification_type_badge">Badge</string>
+    <string name="notification_type_general">General</string>
+    <string name="notification_checkin_title">Stamp Added</string>
+    <string name="notification_checkin_desc">You received a new stamp at %1$s</string>
+    <string name="notification_review_saved">You posted a review for %1$s</string>
+    <string name="notification_badge_title">Badge Unlocked</string>
+    <string name="notification_badge_desc">You unlocked: %1$s</string>
+    <string name="notification_badge_progress_title">Loyalty Progress</string>
+    <string name="notification_card_created">You created a loyalty card for %1$s</string>
 </resources>

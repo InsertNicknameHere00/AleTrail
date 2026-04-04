@@ -4,94 +4,73 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="4dp"
-    app:cardBackgroundColor="#2D1F0A">
+    android:layout_margin="6dp"
+    style="@style/AleTrailCardSurface">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="16dp"
+        android:minHeight="176dp">
 
-        <!-- Badge Icon/Emoji -->
         <TextView
             android:id="@+id/badgeIcon"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
+            android:layout_width="62dp"
+            android:layout_height="62dp"
+            android:background="@drawable/bg_badge_circle"
             android:gravity="center"
-            android:textSize="40sp"
-            android:background="#33FFB300"
-            tools:text="🏆"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:textSize="34sp"
+            tools:text="🏆" />
 
-        <!-- Badge Name -->
         <TextView
             android:id="@+id/badgeName"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:textColor="@android:color/white"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:maxLines="1"
+            android:layout_marginTop="10dp"
             android:ellipsize="end"
-            tools:text="Bronze Collector"
-            app:layout_constraintTop_toTopOf="@id/badgeIcon"
-            app:layout_constraintStart_toEndOf="@id/badgeIcon"
-            app:layout_constraintEnd_toEndOf="parent" />
+            android:gravity="center"
+            android:maxLines="2"
+            android:textColor="?attr/aleTextPrimary"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="Bronze Collector" />
 
-        <!-- Badge Description -->
         <TextView
             android:id="@+id/badgeDescription"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textColor="#CCFFFFFF"
-            android:textSize="14sp"
-            android:maxLines="2"
+            android:layout_marginTop="6dp"
             android:ellipsize="end"
-            tools:text="Collect 10 stamps"
-            app:layout_constraintTop_toBottomOf="@id/badgeName"
-            app:layout_constraintStart_toStartOf="@id/badgeName"
-            app:layout_constraintEnd_toEndOf="parent" />
+            android:gravity="center"
+            android:maxLines="3"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp"
+            android:textColor="?attr/aleBadgeDescriptionText"
+            android:textSize="11sp"
+            tools:text="Collect 10 stamps" />
 
-        <!-- Progress (for locked badges) -->
-        <ProgressBar
-            android:id="@+id/badgeProgress"
-            style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="0dp"
-            android:layout_height="6dp"
-            android:layout_marginTop="8dp"
-            android:progress="50"
-            android:max="100"
-            android:progressDrawable="@drawable/progress_stamps"
-            android:visibility="gone"
-            tools:visibility="visible"
-            app:layout_constraintTop_toBottomOf="@id/badgeDescription"
-            app:layout_constraintStart_toStartOf="@id/badgeName"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="@id/badgeIcon" />
-
-        <!-- Earned Badge Status -->
         <com.google.android.material.chip.Chip
             android:id="@+id/earnedChip"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="✓ Earned"
-            android:textColor="#FFB300"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:minHeight="34dp"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:text="@string/badge_earned"
+            android:textAlignment="center"
+            android:textColor="?attr/aleChipStroke"
             android:textSize="11sp"
-            app:chipBackgroundColor="#33FFB300"
-            app:chipStrokeColor="#FFB300"
-            app:chipStrokeWidth="1dp"
-            android:layout_marginTop="12dp"
             android:visibility="gone"
-            tools:visibility="visible"
-            app:layout_constraintTop_toBottomOf="@id/badgeIcon"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:chipBackgroundColor="?attr/aleChipEarned"
+            app:chipStrokeColor="?attr/aleChipStroke"
+            app:chipStrokeWidth="1dp"
+            tools:visibility="visible" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
+    </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
-

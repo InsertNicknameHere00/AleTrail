@@ -11,17 +11,7 @@ import java.util.UUID;
 
 public class QRCodeService {
 
-    /**
-     * Генерира уникален QR код за loyalty card
-     */
-    public static String generateUniqueQRValue(String userId, String breweryId) {
-        String uniqueId = UUID.randomUUID().toString();
-        return "ALETRAIL:" + userId + ":" + breweryId + ":" + uniqueId;
-    }
-
-    /**
-     * Генерира Bitmap изображение от QR код стойност
-     */
+    // Прави QR bitmap от подаден текст.
     public static Bitmap generateQRCodeBitmap(String qrValue, int width, int height) {
         QRCodeWriter writer = new QRCodeWriter();
         try {
@@ -40,31 +30,39 @@ public class QRCodeService {
         }
     }
 
-    /**
-     * Валидира QR код стойност
-     */
-    public static boolean isValidQRCode(String qrValue) {
-        return qrValue != null && qrValue.startsWith("ALETRAIL:") && qrValue.split(":").length == 4;
+    // Методите отдолу са за brewery stamp QR стойности.
+
+    // Генерира stamp стойността, която слагаме в QR.
+    public static String generateBreweryStampQR(String breweryId, String secretToken) {
+        return "ALETRAIL_STAMP:" + breweryId + ":" + secretToken;
     }
 
-    /**
-     * Извлича userId от QR код
-     */
-    public static String extractUserIdFromQR(String qrValue) {
-        if (isValidQRCode(qrValue)) {
+    // Помощен метод, ако искаме auto token.
+    public static String generateBreweryStampQR(String breweryId) {
+        String token = UUID.randomUUID().toString().substring(0, 8);
+        return generateBreweryStampQR(breweryId, token);
+    }
+
+    // Проверява дали сканираният текст е валиден stamp QR.
+    public static boolean isValidStampQR(String qrValue) {
+        return qrValue != null
+                && qrValue.startsWith("ALETRAIL_STAMP:")
+                && qrValue.split(":").length == 3;
+    }
+
+    // Вади brewery id от валиден stamp QR.
+    public static String extractBreweryIdFromStampQR(String qrValue) {
+        if (isValidStampQR(qrValue)) {
             return qrValue.split(":")[1];
         }
         return null;
     }
 
-    /**
-     * Извлича breweryId от QR код
-     */
-    public static String extractBreweryIdFromQR(String qrValue) {
-        if (isValidQRCode(qrValue)) {
+    // Вади token от валиден stamp QR.
+    public static String extractTokenFromStampQR(String qrValue) {
+        if (isValidStampQR(qrValue)) {
             return qrValue.split(":")[2];
         }
         return null;
     }
 }
-
