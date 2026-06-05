@@ -12,7 +12,7 @@ import java.util.List;
 @Dao
 public interface LoyaltyCardDAO {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     long insert(LoyaltyCardEntity card);
 
     @Update

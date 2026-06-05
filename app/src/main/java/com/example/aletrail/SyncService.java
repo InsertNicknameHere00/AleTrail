@@ -32,14 +32,14 @@ public class SyncService {
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    // Пуска един пълен sync за текущия user.
+    // Пуска един пълен sync за текущия user
     public void syncAllData(String userId) {
         if (!isNetworkAvailable()) {
             Log.d(TAG, "No network available, skipping sync");
             return;
         }
 
-        // Пропускаме cloud sync за guest профили.
+        // Пропускаме cloud sync за guests
         if (userId == null || userId.startsWith("guest_")) {
             Log.d(TAG, "Guest user, skipping cloud sync");
             return;

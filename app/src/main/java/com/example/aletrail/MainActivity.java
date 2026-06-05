@@ -832,11 +832,13 @@ public class MainActivity extends AppCompatActivity {
                     new LoyaltyCardRepository.StampResultCallback() {
                         @Override
                         public void onSuccess(String breweryName) {
-                            runOnUiThread(() -> Toast.makeText(MainActivity.this,
-                                    getString(R.string.toast_stamp_added) + " " + breweryName,
-                                    Toast.LENGTH_SHORT).show());
-                            addNotification("check-in", getString(R.string.notification_checkin_title),
-                                    getString(R.string.notification_checkin_desc, breweryName), null);
+                            if (!isFinishing() && !isDestroyed()) {
+                                runOnUiThread(() -> Toast.makeText(MainActivity.this,
+                                        getString(R.string.toast_stamp_added) + " " + breweryName,
+                                        Toast.LENGTH_SHORT).show());
+                                addNotification("check-in", getString(R.string.notification_checkin_title),
+                                        getString(R.string.notification_checkin_desc, breweryName), null);
+                            }
                         }
 
                         @Override

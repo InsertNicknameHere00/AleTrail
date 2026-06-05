@@ -40,7 +40,7 @@ public class LocationService {
          });
     }
 
-    // Изчислява разстояние между две lat/lng точки (в km).
+    // Изчислява разстояние между две точки (в km).
     public static double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
         final int R = 6371; // Радиус на Земята в km
 
