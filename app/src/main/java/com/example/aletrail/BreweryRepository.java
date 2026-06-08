@@ -1,6 +1,8 @@
 package com.example.aletrail;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
@@ -20,6 +22,7 @@ public class BreweryRepository {
     private TheAleTrailAPI api;
     private ExecutorService executorService;
     private AppwriteService appwriteService;
+    private Context context;
 
     public BreweryRepository(Context context) {
         Database database = Database.getInstance(context);
@@ -27,6 +30,13 @@ public class BreweryRepository {
         this.api = RetrofitClient.getAleTrailAPI();
         this.executorService = Executors.newFixedThreadPool(2);
         this.appwriteService = AppwriteService.getInstance(context);
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager cm = (ConnectivityManager)
+                context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo info = cm.getActiveNetworkInfo();
+        return info != null && info.isConnected();
     }
 
     // Reads all breweries stored locally.
@@ -59,7 +69,8 @@ public class BreweryRepository {
 
     // Fetch nearby breweries from API.
     public void fetchBreweriesByLocation(double latitude, double longitude, int perPage) {
-        String location = latitude + "," + longitude;
+        if (!isNetworkAvailable()) { Log.d(TAG, "Offline - skipping API fetch, Room DB will serve cached data"); return; }
+            String location = latitude + "," + longitude;
         api.getBreweriesByLocation(location, perPage).enqueue(new Callback<List<BreweryEntity>>() {
             @Override
             public void onResponse(Call<List<BreweryEntity>> call, Response<List<BreweryEntity>> response) {
@@ -80,6 +91,7 @@ public class BreweryRepository {
 
     // Fetch breweries by city from API.
     public void fetchBreweriesByCity(String city, int perPage) {
+        if (!isNetworkAvailable()) { Log.d(TAG, "Offline - skipping API fetch, Room DB will serve cached data"); return; }
         api.getBreweriesByCity(city, perPage).enqueue(new Callback<List<BreweryEntity>>() {
             @Override
             public void onResponse(Call<List<BreweryEntity>> call, Response<List<BreweryEntity>> response) {
@@ -100,6 +112,7 @@ public class BreweryRepository {
 
     // Fetch breweries by state from API.
     public void fetchBreweriesByState(String state, int perPage) {
+        if (!isNetworkAvailable()) { Log.d(TAG, "Offline - skipping API fetch, Room DB will serve cached data"); return; }
         api.filterBreweries(null, state, null, null, perPage).enqueue(new Callback<List<BreweryEntity>>() {
             @Override
             public void onResponse(Call<List<BreweryEntity>> call, Response<List<BreweryEntity>> response) {
@@ -120,6 +133,7 @@ public class BreweryRepository {
 
     // Fetch breweries by type from API.
     public void fetchBreweriesByType(String type, int perPage) {
+        if (!isNetworkAvailable()) { Log.d(TAG, "Offline - skipping API fetch, Room DB will serve cached data"); return; }
         api.filterBreweries(null, null, null, type, perPage).enqueue(new Callback<List<BreweryEntity>>() {
             @Override
             public void onResponse(Call<List<BreweryEntity>> call, Response<List<BreweryEntity>> response) {
@@ -140,6 +154,7 @@ public class BreweryRepository {
 
     // Fetch breweries by state + type from API.
     public void fetchBreweriesByStateAndType(String state, String type, int perPage) {
+        if (!isNetworkAvailable()) { Log.d(TAG, "Offline - skipping API fetch, Room DB will serve cached data"); return; }
         api.filterBreweries(null, state, null, type, perPage).enqueue(new Callback<List<BreweryEntity>>() {
             @Override
             public void onResponse(Call<List<BreweryEntity>> call, Response<List<BreweryEntity>> response) {

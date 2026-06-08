@@ -4,8 +4,11 @@ import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
@@ -410,6 +413,13 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private boolean isNetworkAvailable() {
+        ConnectivityManager cm = (ConnectivityManager)
+                getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo info = cm.getActiveNetworkInfo();
+        return info != null && info.isConnected();
+    }
+
     private void switchTab(int position) {
         View filterCard = this.filterCard;
 
@@ -598,7 +608,13 @@ public class MainActivity extends AppCompatActivity {
                 breweryAdapter.setBreweries(breweries);
             } else {
                 // Ако локално е празно, дърпаме от API
-                breweryRepository.fetchBreweriesByCity("San Francisco", 20);
+                if (isNetworkAvailable()) {
+                    breweryRepository.fetchBreweriesByCity("San Francisco", 20);
+                } else {
+                    Toast.makeText(this,
+                            "Няма интернет връзка и няма кеширани данни",
+                            Toast.LENGTH_LONG).show();
+                }
             }
         });
     }
