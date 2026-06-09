@@ -34,7 +34,7 @@ public class UserEntity {
         this.totalBreweriesVisited = 0;
     }
 
-    // Стандартни getters/setters за профила.
+    // Стандартни getters и setters за профила.
     @NonNull
     public String getUserId() { return userId; }
     public void setUserId(@NonNull String userId) { this.userId = userId; }

@@ -30,14 +30,12 @@ public class QRCodeService {
         }
     }
 
-    // Методите отдолу са за brewery stamp QR стойности.
-
-    // Генерира stamp стойността, която слагаме в QR.
+    // Генерира stamp стойността, която слагаме в QR
     public static String generateBreweryStampQR(String breweryId, String secretToken) {
         return "ALETRAIL_STAMP:" + breweryId + ":" + secretToken;
     }
 
-    // Помощен метод, ако искаме auto token.
+    // Помощен метод ако искаме auto token
     public static String generateBreweryStampQR(String breweryId) {
         String token = UUID.randomUUID().toString().substring(0, 8);
         return generateBreweryStampQR(breweryId, token);

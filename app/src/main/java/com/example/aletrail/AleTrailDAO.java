@@ -15,7 +15,7 @@ public interface AleTrailDAO {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(BreweryEntity ale);
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     void insertAll(List<BreweryEntity> ales);
 
     @Update

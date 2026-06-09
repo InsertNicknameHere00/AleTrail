@@ -12,13 +12,11 @@
         .info { color: #90CAF9; font-size: 14px; margin-top: 16px; }
     </style>
     <script>
-        // Extract userId and secret from URL params
         const params = new URLSearchParams(window.location.search);
         const userId = params.get('userId');
         const secret = params.get('secret');
 
         if (userId && secret) {
-            // Try to redirect to the AleTrail app deep link
             const deepLink = 'aletrail://verify?userId=' + encodeURIComponent(userId) + '&secret=' + encodeURIComponent(secret);
             window.location.href = deepLink;
         }
@@ -34,7 +32,7 @@
             const secret = params.get('secret');
             if (userId && secret) {
                 const deepLink = 'aletrail://verify?userId=' + encodeURIComponent(userId) + '&secret=' + encodeURIComponent(secret);
-                document.write('<p>If the app didn\'t open automatically:</p>');
+                document.write('<p>If the app didn't open automatically:</p>');
                 document.write('<a href="' + deepLink + '">Open in AleTrail App</a>');
                 document.write('<p class="info">This will complete your email verification.</p>');
             } else {

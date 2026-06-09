@@ -699,7 +699,7 @@ public class AppwriteService {
         data.put("breweryId", badge.getBreweryId() != null && !badge.getBreweryId().isEmpty()
                 ? badge.getBreweryId() : null);
 
-        // Стабилно docId, за да няма дублирани badge документи.
+        // Сигурно docId, за да няма дублирани badge документи.
         String docId = badge.getUserId() + "_" + badge.getBadgeType();
         docId = docId.replaceAll("[^a-zA-Z0-9._-]", "_");
         if (docId.length() > 36) {

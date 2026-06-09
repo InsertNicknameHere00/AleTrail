@@ -28,10 +28,12 @@ public abstract class Database extends RoomDatabase {
     public static Database getInstance(Context context) {
         if (INSTANCE == null) {
             synchronized (Database.class) {
-                INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                        Database.class, "brewery_database")
-                        .fallbackToDestructiveMigration()
-                        .build();
+                if (INSTANCE == null) {
+                    INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
+                                    Database.class, "brewery_database")
+                            .fallbackToDestructiveMigration()
+                            .build();
+                }
             }
         }
         return INSTANCE;

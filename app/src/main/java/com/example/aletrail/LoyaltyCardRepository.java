@@ -30,7 +30,20 @@ public class LoyaltyCardRepository {
         this.appwriteService = AppwriteService.getInstance(context);
     }
 
-    // Прави loyalty card, само ако user още няма за тази brewery.
+    LoyaltyCardRepository(Database database,
+                          ExecutorService executorService,
+                          GamificationService gamificationService,
+                          AppwriteService appwriteService) {
+        this.database = database;
+        this.loyaltyCardDao = database.loyaltyCardDAO();
+        this.visitDao = database.visitDAO();
+        this.userDao = database.userDAO();
+        this.executorService = executorService;
+        this.gamificationService = gamificationService;
+        this.appwriteService = appwriteService;
+    }
+
+    // Прави loyalty card, само ако user още няма за тази пивоварна.
     public void createLoyaltyCard(String userId, String breweryId, int maxStamps,
                                   OnCardCreatedListener listener) {
         executorService.execute(() -> {
@@ -258,7 +271,7 @@ public class LoyaltyCardRepository {
                 // Всички проверки минаха.
                 addStampToCardInternal(card.getCardId(), userId, breweryId, latitude, longitude);
 
-                // Пробваме да върнем по-приятно име на brewery.
+                // Пробваме да върнем  име на brewery.
                 String breweryName = breweryId;
                 try {
                     BreweryEntity brewery = database.AleDAO().getAleByIdSync(breweryId);
